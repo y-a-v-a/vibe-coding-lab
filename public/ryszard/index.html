@@ -182,18 +182,8 @@
 
         let blackCellIndices;
 
-        if (keepState && previousState && randomize) {
-          // Keep existing black cells and add exactly one more for this square
-          const currentWhiteCells = [];
-
-          // Find indices of current white cells
-          for (let i = 0; i < 36; i++) {
-            if (!previousState[i]) {
-              currentWhiteCells.push(i);
-            }
-          }
-
-          // Start with existing black cells
+        if (previousState) {
+          // Keep State mode: inherit from previous square
           blackCellIndices = [];
           for (let i = 0; i < 36; i++) {
             if (previousState[i]) {
@@ -202,32 +192,27 @@
           }
 
           // Add exactly one more random white cell (if available)
-          if (currentWhiteCells.length > 0) {
-            const randomIndex = Math.floor(
-              Math.random() * currentWhiteCells.length,
-            );
-            const randomWhiteIndex = currentWhiteCells[randomIndex];
-            blackCellIndices.push(randomWhiteIndex);
-          }
-        } else if (keepState && previousState) {
-          // Keep state is on but not randomizing - maintain current state
-          blackCellIndices = [];
-          for (let i = 0; i < 36; i++) {
-            if (previousState[i]) {
-              blackCellIndices.push(i);
+          if (randomize) {
+            const currentWhiteCells = [];
+            for (let i = 0; i < 36; i++) {
+              if (!previousState[i]) {
+                currentWhiteCells.push(i);
+              }
+            }
+            if (currentWhiteCells.length > 0) {
+              const randomIndex = Math.floor(Math.random() * currentWhiteCells.length);
+              const randomWhiteIndex = currentWhiteCells[randomIndex];
+              blackCellIndices.push(randomWhiteIndex);
             }
           }
         } else {
-          // Original logic
+          // Normal mode: generate based on blackCellCount
           const cellIndices = Array.from({ length: 36 }, (_, i) => i);
 
           if (randomize) {
-            // Randomly select which cells should be black
-            blackCellIndices = [];
             const shuffled = [...cellIndices].sort(() => Math.random() - 0.5);
             blackCellIndices = shuffled.slice(0, blackCellCount);
           } else {
-            // Sequential fill from top-left
             blackCellIndices = cellIndices.slice(0, blackCellCount);
           }
         }
