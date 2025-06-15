@@ -1,0 +1,182 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Vibe Coded - Cosmic Flow</title>
+    <link rel="icon" href="data:,">
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+        
+        body {
+            background: linear-gradient(45deg, #0a0a0a, #1a1a2e, #16213e);
+            overflow: hidden;
+            font-family: 'Arial', sans-serif;
+        }
+        
+        .container {
+            position: relative;
+            width: 100vw;
+            height: 100vh;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+        }
+        
+        .cosmic-orb {
+            width: 300px;
+            height: 300px;
+            border-radius: 50%;
+            background: conic-gradient(from 0deg, #ff006e, #8338ec, #3a86ff, #06ffa5, #ffbe0b, #ff006e);
+            animation: rotate 4s linear infinite;
+            position: relative;
+            box-shadow: 0 0 100px rgba(255, 0, 110, 0.5);
+        }
+        
+        .cosmic-orb::before {
+            content: '';
+            position: absolute;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            width: 250px;
+            height: 250px;
+            border-radius: 50%;
+            background: radial-gradient(circle, rgba(10, 10, 10, 0.8) 30%, transparent 70%);
+        }
+        
+        .pulse-ring {
+            position: absolute;
+            border: 2px solid rgba(255, 0, 110, 0.6);
+            border-radius: 50%;
+            animation: pulse 2s ease-out infinite;
+        }
+        
+        .pulse-ring:nth-child(1) { animation-delay: 0s; }
+        .pulse-ring:nth-child(2) { animation-delay: 0.5s; }
+        .pulse-ring:nth-child(3) { animation-delay: 1s; }
+        .pulse-ring:nth-child(4) { animation-delay: 1.5s; }
+        
+        .floating-particles {
+            position: absolute;
+            width: 100%;
+            height: 100%;
+            pointer-events: none;
+        }
+        
+        .particle {
+            position: absolute;
+            width: 4px;
+            height: 4px;
+            background: #06ffa5;
+            border-radius: 50%;
+            animation: float 6s ease-in-out infinite;
+            box-shadow: 0 0 10px #06ffa5;
+        }
+        
+        .title {
+            position: absolute;
+            top: 10%;
+            left: 50%;
+            transform: translateX(-50%);
+            color: #fff;
+            font-size: 3rem;
+            font-weight: bold;
+            text-align: center;
+            text-shadow: 0 0 20px rgba(255, 255, 255, 0.5);
+            animation: glow 3s ease-in-out infinite alternate;
+        }
+        
+        .subtitle {
+            position: absolute;
+            bottom: 10%;
+            left: 50%;
+            transform: translateX(-50%);
+            color: #8338ec;
+            font-size: 1.2rem;
+            text-align: center;
+            opacity: 0.8;
+        }
+        
+        @keyframes rotate {
+            from { transform: rotate(0deg); }
+            to { transform: rotate(360deg); }
+        }
+        
+        @keyframes pulse {
+            0% {
+                width: 300px;
+                height: 300px;
+                opacity: 1;
+            }
+            100% {
+                width: 600px;
+                height: 600px;
+                opacity: 0;
+            }
+        }
+        
+        @keyframes float {
+            0%, 100% { transform: translateY(0px) translateX(0px); opacity: 0; }
+            25% { opacity: 1; }
+            50% { transform: translateY(-100px) translateX(50px); opacity: 1; }
+            75% { opacity: 1; }
+        }
+        
+        @keyframes glow {
+            from { text-shadow: 0 0 20px rgba(255, 255, 255, 0.5); }
+            to { text-shadow: 0 0 30px rgba(255, 0, 110, 0.8), 0 0 40px rgba(131, 56, 236, 0.6); }
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1 class="title">COSMIC FLOW</h1>
+        
+        <div class="cosmic-orb">
+            <div class="pulse-ring"></div>
+            <div class="pulse-ring"></div>
+            <div class="pulse-ring"></div>
+            <div class="pulse-ring"></div>
+        </div>
+        
+        <div class="floating-particles" id="particles"></div>
+        
+        <p class="subtitle">vibe coded " artistic expression</p>
+    </div>
+    
+    <script>
+        // Generate floating particles
+        const particlesContainer = document.getElementById('particles');
+        const colors = ['#ff006e', '#8338ec', '#3a86ff', '#06ffa5', '#ffbe0b'];
+        
+        for (let i = 0; i < 50; i++) {
+            const particle = document.createElement('div');
+            particle.className = 'particle';
+            particle.style.left = Math.random() * 100 + '%';
+            particle.style.top = Math.random() * 100 + '%';
+            particle.style.background = colors[Math.floor(Math.random() * colors.length)];
+            particle.style.animationDelay = Math.random() * 6 + 's';
+            particle.style.animationDuration = (Math.random() * 4 + 4) + 's';
+            particlesContainer.appendChild(particle);
+        }
+        
+        // Add interactive mouse effects
+        document.addEventListener('mousemove', (e) => {
+            const orb = document.querySelector('.cosmic-orb');
+            const rect = orb.getBoundingClientRect();
+            const centerX = rect.left + rect.width / 2;
+            const centerY = rect.top + rect.height / 2;
+            
+            const deltaX = (e.clientX - centerX) * 0.1;
+            const deltaY = (e.clientY - centerY) * 0.1;
+            
+            orb.style.transform = `translate(${deltaX}px, ${deltaY}px)`;
+        });
+    </script>
+</body>
+</html>
