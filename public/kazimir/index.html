@@ -1,0 +1,414 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Dynamic Malevich Red Square</title>
+    <style>
+      * {
+        margin: 0;
+        padding: 0;
+        box-sizing: border-box;
+      }
+
+      body {
+        background: #f8f8f8;
+        overflow: hidden;
+        font-family: Arial, sans-serif;
+      }
+
+      canvas {
+        display: block;
+        background: #f8f8f8;
+      }
+
+      .info {
+        position: absolute;
+        top: 20px;
+        left: 20px;
+        color: #333;
+        font-size: 14px;
+        opacity: 0.7;
+        pointer-events: none;
+      }
+
+      .controls {
+        position: absolute;
+        top: 20px;
+        right: 20px;
+        background: rgba(255, 255, 255, 0.9);
+        backdrop-filter: blur(10px);
+        border-radius: 12px;
+        padding: 20px;
+        box-shadow: 0 4px 20px rgba(0, 0, 0, 0.1);
+        font-family: Arial, sans-serif;
+        font-size: 12px;
+        min-width: 200px;
+        transition: opacity 0.3s ease;
+      }
+
+      .controls.hidden {
+        opacity: 0;
+        pointer-events: none;
+      }
+
+      .control-group {
+        margin-bottom: 15px;
+      }
+
+      .control-group:last-child {
+        margin-bottom: 0;
+      }
+
+      .control-label {
+        display: block;
+        margin-bottom: 5px;
+        color: #333;
+        font-weight: 500;
+      }
+
+      .slider {
+        width: 100%;
+        height: 4px;
+        border-radius: 2px;
+        background: #ddd;
+        outline: none;
+        -webkit-appearance: none;
+        appearance: none;
+      }
+
+      .slider::-webkit-slider-thumb {
+        -webkit-appearance: none;
+        appearance: none;
+        width: 16px;
+        height: 16px;
+        border-radius: 50%;
+        background: #ad4038;
+        cursor: pointer;
+        box-shadow: 0 2px 4px rgba(0, 0, 0, 0.2);
+      }
+
+      .slider::-moz-range-thumb {
+        width: 16px;
+        height: 16px;
+        border-radius: 50%;
+        background: #ad4038;
+        cursor: pointer;
+        border: none;
+        box-shadow: 0 2px 4px rgba(0, 0, 0, 0.2);
+      }
+
+      .speed-value {
+        display: inline-block;
+        margin-left: 8px;
+        color: #666;
+        font-size: 11px;
+      }
+    </style>
+  </head>
+  <body>
+    <canvas id="canvas"></canvas>
+    <div class="info">
+      Dynamic interpretation of Kazimir Malevich's Red Square (1915)
+    </div>
+    <div class="controls">
+      <div class="control-group">
+        <label class="control-label"
+          >Upper Right Corner<span class="speed-value" id="ur-value"
+            >1.0x</span
+          ></label
+        >
+        <input
+          type="range"
+          class="slider"
+          id="ur-slider"
+          min="0"
+          max="2"
+          step="0.1"
+          value="1.0"
+        />
+      </div>
+      <div class="control-group">
+        <label class="control-label"
+          >Upper Left Corner<span class="speed-value" id="ul-value"
+            >0.6x</span
+          ></label
+        >
+        <input
+          type="range"
+          class="slider"
+          id="ul-slider"
+          min="0"
+          max="2"
+          step="0.1"
+          value="0.6"
+        />
+      </div>
+      <div class="control-group">
+        <label class="control-label"
+          >Bottom Right Corner<span class="speed-value" id="br-value"
+            >0.7x</span
+          ></label
+        >
+        <input
+          type="range"
+          class="slider"
+          id="br-slider"
+          min="0"
+          max="2"
+          step="0.1"
+          value="0.7"
+        />
+      </div>
+      <div class="control-group">
+        <label class="control-label"
+          >Bottom Left Corner<span class="speed-value" id="bl-value"
+            >0.5x</span
+          ></label
+        >
+        <input
+          type="range"
+          class="slider"
+          id="bl-slider"
+          min="0"
+          max="2"
+          step="0.1"
+          value="0.5"
+        />
+      </div>
+    </div>
+
+    <script>
+      // Simplified noise function using Math.sin for reliability
+      function simpleNoise(x, y) {
+        try {
+          return (
+            Math.sin(x * 0.01) *
+            Math.cos(y * 0.01) *
+            Math.sin(x * 0.02 + y * 0.02) *
+            Math.cos(x * 0.005 - y * 0.005)
+          );
+        } catch (e) {
+          console.error('Noise function error:', e);
+          return 0;
+        }
+      }
+
+      const canvas = document.getElementById('canvas');
+      const ctx = canvas.getContext('2d');
+
+      let time = 0;
+      let animationId;
+
+      // Speed controls for each corner
+      let speeds = {
+        ur: 1.0, // Upper Right
+        ul: 0.6, // Upper Left
+        br: 0.7, // Bottom Right
+        bl: 0.5, // Bottom Left
+      };
+
+      // Get slider elements and value displays
+      const sliders = {
+        ur: document.getElementById('ur-slider'),
+        ul: document.getElementById('ul-slider'),
+        br: document.getElementById('br-slider'),
+        bl: document.getElementById('bl-slider'),
+      };
+
+      const valueDisplays = {
+        ur: document.getElementById('ur-value'),
+        ul: document.getElementById('ul-value'),
+        br: document.getElementById('br-value'),
+        bl: document.getElementById('bl-value'),
+      };
+
+      // Add event listeners for sliders
+      Object.keys(sliders).forEach((corner) => {
+        sliders[corner].addEventListener('input', function () {
+          speeds[corner] = parseFloat(this.value);
+          valueDisplays[corner].textContent = speeds[corner].toFixed(1) + 'x';
+        });
+      });
+
+      function resizeCanvas() {
+        canvas.width = window.innerWidth;
+        canvas.height = window.innerHeight;
+      }
+
+      function drawSquare() {
+        try {
+          const centerX = canvas.width / 2;
+          const centerY = canvas.height / 2;
+          const baseSize = Math.min(canvas.width, canvas.height) * 0.6667;
+
+          // Calculate noise-based offsets for all corners using dynamic speeds
+          const fastIntensity = Math.min(canvas.width, canvas.height) * 0.05;
+          const slowIntensity = Math.min(canvas.width, canvas.height) * 0.025;
+          const margin = 50;
+
+          // Upper Right Corner (user-controlled speed)
+          const urRawX = simpleNoise(time * speeds.ur, 1000) * fastIntensity;
+          const urRawY =
+            simpleNoise(time * speeds.ur + 100, 2000) * fastIntensity;
+
+          // Upper Left Corner (user-controlled speed)
+          const ulRawX = simpleNoise(time * speeds.ul, 3000) * slowIntensity;
+          const ulRawY =
+            simpleNoise(time * speeds.ul + 200, 4000) * slowIntensity;
+
+          // Bottom Right Corner (user-controlled speed)
+          const brRawX = simpleNoise(time * speeds.br, 5000) * slowIntensity;
+          const brRawY =
+            simpleNoise(time * speeds.br + 300, 6000) * slowIntensity;
+
+          // Bottom Left Corner (user-controlled speed)
+          const blRawX = simpleNoise(time * speeds.bl, 7000) * slowIntensity;
+          const blRawY =
+            simpleNoise(time * speeds.bl + 400, 8000) * slowIntensity;
+
+          // Base corner positions
+          const baseHalfSize = baseSize / 2;
+
+          // Clamp all offsets to keep corners within bounds
+          const urOffsetX =
+            Math.max(
+              -baseHalfSize,
+              Math.min(canvas.width - centerX - baseHalfSize - margin, urRawX),
+            ) || 0;
+          const urOffsetY =
+            Math.max(
+              -baseHalfSize,
+              Math.min(canvas.height - centerY + baseHalfSize - margin, urRawY),
+            ) || 0;
+
+          const ulOffsetX =
+            Math.max(
+              -centerX + baseHalfSize + margin,
+              Math.min(baseHalfSize, ulRawX),
+            ) || 0;
+          const ulOffsetY =
+            Math.max(
+              -centerY + baseHalfSize + margin,
+              Math.min(baseHalfSize, ulRawY),
+            ) || 0;
+
+          const brOffsetX =
+            Math.max(
+              -baseHalfSize,
+              Math.min(canvas.width - centerX - baseHalfSize - margin, brRawX),
+            ) || 0;
+          const brOffsetY =
+            Math.max(
+              -baseHalfSize,
+              Math.min(canvas.height - centerY - baseHalfSize - margin, brRawY),
+            ) || 0;
+
+          const blOffsetX =
+            Math.max(
+              -centerX + baseHalfSize + margin,
+              Math.min(baseHalfSize, blRawX),
+            ) || 0;
+          const blOffsetY =
+            Math.max(
+              -baseHalfSize,
+              Math.min(canvas.height - centerY - baseHalfSize - margin, blRawY),
+            ) || 0;
+
+          // Define the four corners of the deformed square
+          const topLeft = {
+            x: centerX - baseSize / 2 + ulOffsetX,
+            y: centerY - baseSize / 2 + ulOffsetY,
+          };
+
+          const topRight = {
+            x: centerX + baseSize / 2 + urOffsetX,
+            y: centerY - baseSize / 2 + urOffsetY,
+          };
+
+          const bottomLeft = {
+            x: centerX - baseSize / 2 + blOffsetX,
+            y: centerY + baseSize / 2 + blOffsetY,
+          };
+
+          const bottomRight = {
+            x: centerX + baseSize / 2 + brOffsetX,
+            y: centerY + baseSize / 2 + brOffsetY,
+          };
+
+          // Clear canvas
+          ctx.fillStyle = '#f8f8f8';
+          ctx.fillRect(0, 0, canvas.width, canvas.height);
+
+          // Draw the deformed square
+          ctx.beginPath();
+          ctx.moveTo(topLeft.x, topLeft.y);
+          ctx.lineTo(topRight.x, topRight.y);
+          ctx.lineTo(bottomRight.x, bottomRight.y);
+          ctx.lineTo(bottomLeft.x, bottomLeft.y);
+          ctx.closePath();
+
+          // Fill with Malevich's red
+          ctx.fillStyle = '#AD4038';
+          ctx.fill();
+
+          // Add subtle shadow for depth
+          ctx.shadowColor = 'rgba(0, 0, 0, 0.1)';
+          ctx.shadowBlur = 10;
+          ctx.shadowOffsetX = 5;
+          ctx.shadowOffsetY = 5;
+          ctx.fill();
+
+          // Reset shadow
+          ctx.shadowColor = 'transparent';
+          ctx.shadowBlur = 0;
+          ctx.shadowOffsetX = 0;
+          ctx.shadowOffsetY = 0;
+        } catch (error) {
+          console.error('Draw function error:', error);
+          // Fallback: draw a static square
+          ctx.fillStyle = '#f8f8f8';
+          ctx.fillRect(0, 0, canvas.width, canvas.height);
+          ctx.fillStyle = '#AD4038';
+          const size = Math.min(canvas.width, canvas.height) * 0.3;
+          ctx.fillRect(
+            canvas.width / 2 - size / 2,
+            canvas.height / 2 - size / 2,
+            size,
+            size,
+          );
+        }
+      }
+
+      function animate() {
+        try {
+          drawSquare();
+          time += 0.5; // Slower animation
+          animationId = requestAnimationFrame(animate);
+        } catch (error) {
+          console.error('Animation error:', error);
+          // Stop animation on error
+          if (animationId) {
+            cancelAnimationFrame(animationId);
+          }
+        }
+      }
+
+      // Controls visibility toggle
+      const controls = document.querySelector('.controls');
+      let controlsVisible = true;
+
+      document.addEventListener('keydown', function (event) {
+        if (event.key === 'h' || event.key === 'H') {
+          controlsVisible = !controlsVisible;
+          controls.classList.toggle('hidden', !controlsVisible);
+        }
+      });
+
+      // Initialize
+      resizeCanvas();
+      window.addEventListener('resize', resizeCanvas);
+      animate();
+    </script>
+  </body>
+</html>
