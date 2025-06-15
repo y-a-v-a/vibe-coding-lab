@@ -1,0 +1,309 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Progressive Grid Pattern</title>
+    <link rel="icon" href="data:," />
+    <style>
+      body {
+        margin: 0;
+        padding: 20px;
+        background-color: #f0f0f0;
+        display: flex;
+        justify-content: center;
+        align-items: center;
+        min-height: 100vh;
+        font-family: Arial, sans-serif;
+      }
+
+      .container {
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+        gap: 20px;
+      }
+
+      .square-b {
+        display: grid;
+        grid-template-columns: repeat(6, 1fr);
+        grid-template-rows: repeat(6, 1fr);
+        gap: 4px;
+        padding: 10px;
+        background-color: #333;
+        border-radius: 8px;
+      }
+
+      .square-a {
+        display: grid;
+        grid-template-columns: repeat(6, 1fr);
+        grid-template-rows: repeat(6, 1fr);
+        gap: 1px;
+        background-color: #666;
+        border-radius: 2px;
+        width: 60px;
+        height: 60px;
+      }
+
+      .grid-cell {
+        background-color: white;
+        border-radius: 1px;
+      }
+
+      .grid-cell.black {
+        background-color: black;
+      }
+
+      .info {
+        text-align: center;
+        color: #333;
+      }
+
+      .info h1 {
+        margin: 0 0 10px 0;
+        font-size: 24px;
+      }
+
+      .info p {
+        margin: 0;
+        font-size: 14px;
+        color: #666;
+      }
+
+      .controls {
+        display: flex;
+        gap: 15px;
+        margin-bottom: 20px;
+        align-items: center;
+      }
+
+      .btn {
+        padding: 10px 20px;
+        background-color: #007bff;
+        color: white;
+        border: none;
+        border-radius: 5px;
+        cursor: pointer;
+        font-size: 14px;
+        transition: background-color 0.3s;
+      }
+
+      .btn:hover {
+        background-color: #0056b3;
+      }
+
+      .btn:active {
+        transform: translateY(1px);
+      }
+
+      .toggle-container {
+        display: flex;
+        align-items: center;
+        gap: 10px;
+      }
+
+      .toggle-switch {
+        position: relative;
+        width: 60px;
+        height: 30px;
+        background-color: #ccc;
+        border-radius: 15px;
+        cursor: pointer;
+        transition: background-color 0.3s;
+      }
+
+      .toggle-switch.active {
+        background-color: #007bff;
+      }
+
+      .toggle-slider {
+        position: absolute;
+        top: 3px;
+        left: 3px;
+        width: 24px;
+        height: 24px;
+        background-color: white;
+        border-radius: 50%;
+        transition: transform 0.3s;
+      }
+
+      .toggle-switch.active .toggle-slider {
+        transform: translateX(30px);
+      }
+
+      .toggle-label {
+        font-size: 14px;
+        color: #333;
+        font-weight: bold;
+      }
+    </style>
+  </head>
+  <body>
+    <div class="container">
+      <div class="info">
+        <h1>Progressive Grid Pattern</h1>
+        <p>
+          Each 6×6 grid (Square A) has progressively more black cells, arranged
+          in a 6×6 layout (Square B)
+        </p>
+      </div>
+      <div class="controls">
+        <button class="btn" onclick="randomizeCells()">
+          Randomize Positions
+        </button>
+        <button class="btn" onclick="resetToSequential()">
+          Reset to Sequential
+        </button>
+        <div class="toggle-container">
+          <span class="toggle-label">Keep State:</span>
+          <div
+            class="toggle-switch"
+            id="keepStateToggle"
+            onclick="toggleKeepState()"
+          >
+            <div class="toggle-slider"></div>
+          </div>
+          <span class="toggle-label" id="toggleStatus">OFF</span>
+        </div>
+      </div>
+      <div class="square-b" id="squareB"></div>
+    </div>
+
+    <script>
+      let keepState = false;
+
+      function createSquareA(
+        blackCellCount,
+        randomize = false,
+        previousState = null,
+      ) {
+        const squareA = document.createElement('div');
+        squareA.className = 'square-a';
+
+        let blackCellIndices;
+
+        if (keepState && previousState && randomize) {
+          // Keep existing black cells and add exactly one more for this square
+          const currentWhiteCells = [];
+
+          // Find indices of current white cells
+          for (let i = 0; i < 36; i++) {
+            if (!previousState[i]) {
+              currentWhiteCells.push(i);
+            }
+          }
+
+          // Start with existing black cells
+          blackCellIndices = [];
+          for (let i = 0; i < 36; i++) {
+            if (previousState[i]) {
+              blackCellIndices.push(i);
+            }
+          }
+
+          // Add exactly one more random white cell (if available)
+          if (currentWhiteCells.length > 0) {
+            const randomIndex = Math.floor(
+              Math.random() * currentWhiteCells.length,
+            );
+            const randomWhiteIndex = currentWhiteCells[randomIndex];
+            blackCellIndices.push(randomWhiteIndex);
+          }
+        } else if (keepState && previousState) {
+          // Keep state is on but not randomizing - maintain current state
+          blackCellIndices = [];
+          for (let i = 0; i < 36; i++) {
+            if (previousState[i]) {
+              blackCellIndices.push(i);
+            }
+          }
+        } else {
+          // Original logic
+          const cellIndices = Array.from({ length: 36 }, (_, i) => i);
+
+          if (randomize) {
+            // Randomly select which cells should be black
+            blackCellIndices = [];
+            const shuffled = [...cellIndices].sort(() => Math.random() - 0.5);
+            blackCellIndices = shuffled.slice(0, blackCellCount);
+          } else {
+            // Sequential fill from top-left
+            blackCellIndices = cellIndices.slice(0, blackCellCount);
+          }
+        }
+
+        // Create state array for this square
+        const squareState = new Array(36).fill(false);
+
+        // Create 36 cells (6x6 grid)
+        for (let i = 0; i < 36; i++) {
+          const cell = document.createElement('div');
+          cell.className = 'grid-cell';
+
+          if (blackCellIndices.includes(i)) {
+            cell.classList.add('black');
+            squareState[i] = true;
+          }
+
+          squareA.appendChild(cell);
+        }
+
+        return { element: squareA, state: squareState };
+      }
+
+      function createSquareB(randomize = false) {
+        const squareB = document.getElementById('squareB');
+        squareB.innerHTML = ''; // Clear existing content
+
+        let previousSquareState = null;
+
+        // Create 36 instances of Square A (6x6 arrangement)
+        for (let i = 1; i <= 36; i++) {
+          const result = createSquareA(i, randomize, previousSquareState);
+          squareB.appendChild(result.element);
+          
+          // For Keep State mode, each square inherits from the previous square
+          if (keepState) {
+            previousSquareState = result.state;
+          }
+        }
+      }
+
+      function randomizeCells() {
+        createSquareB(true);
+      }
+
+      function resetToSequential() {
+        // Clear states and turn off keep state
+        keepState = false;
+        updateToggleUI();
+        createSquareB(false);
+      }
+
+      function toggleKeepState() {
+        keepState = !keepState;
+        updateToggleUI();
+        // Only regenerate when turning OFF
+        if (!keepState) {
+          createSquareB(false);
+        }
+      }
+
+      function updateToggleUI() {
+        const toggle = document.getElementById('keepStateToggle');
+        const status = document.getElementById('toggleStatus');
+
+        if (keepState) {
+          toggle.classList.add('active');
+          status.textContent = 'ON';
+        } else {
+          toggle.classList.remove('active');
+          status.textContent = 'OFF';
+        }
+      }
+
+      // Initialize the pattern when the page loads
+      document.addEventListener('DOMContentLoaded', () => createSquareB(false));
+    </script>
+  </body>
+</html>

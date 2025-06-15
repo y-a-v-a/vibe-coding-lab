@@ -120,11 +120,19 @@ for project_dir in "$PUBLIC_DIR"/*; do
                 title="$project_name"
             fi
             
+            # Check for README.md and extract copyright
+            readme_file="$project_dir/README.md"
+            copyright=""
+            if [ -f "$readme_file" ]; then
+                copyright=$(grep "^(c)" "$readme_file" | head -1)
+            fi
+            
             # Add project card to index
             cat >> "$INDEX_FILE" << EOF
             <div class="project-card">
                 <h2>$title</h2>
                 <p>Project: $project_name</p>
+                $(if [ -n "$copyright" ]; then echo "<p style=\"font-size: 0.8rem; color: rgba(255, 255, 255, 0.6);\">$copyright</p>"; fi)
                 <a href="$project_name/">View Project →</a>
             </div>
 EOF
