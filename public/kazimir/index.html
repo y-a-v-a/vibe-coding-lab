@@ -109,9 +109,9 @@
   <body>
     <canvas id="canvas"></canvas>
     <div class="info">
-      Dynamic interpretation of Kazimir Malevich's Red Square (1915)
+      Red Square. Digital Realism of a Vibe Coder in Two Dimensions
     </div>
-    <div class="controls">
+    <div class="controls hidden">
       <div class="control-group">
         <label class="control-label"
           >Upper Right Corner<span class="speed-value" id="ur-value"
@@ -131,7 +131,7 @@
       <div class="control-group">
         <label class="control-label"
           >Upper Left Corner<span class="speed-value" id="ul-value"
-            >0.6x</span
+            >0.1x</span
           ></label
         >
         <input
@@ -141,13 +141,13 @@
           min="0"
           max="2"
           step="0.1"
-          value="0.6"
+          value="0.1"
         />
       </div>
       <div class="control-group">
         <label class="control-label"
           >Bottom Right Corner<span class="speed-value" id="br-value"
-            >0.7x</span
+            >0.1x</span
           ></label
         >
         <input
@@ -157,13 +157,13 @@
           min="0"
           max="2"
           step="0.1"
-          value="0.7"
+          value="0.1"
         />
       </div>
       <div class="control-group">
         <label class="control-label"
           >Bottom Left Corner<span class="speed-value" id="bl-value"
-            >0.5x</span
+            >0.1x</span
           ></label
         >
         <input
@@ -173,7 +173,7 @@
           min="0"
           max="2"
           step="0.1"
-          value="0.5"
+          value="0.1"
         />
       </div>
     </div>
@@ -203,9 +203,9 @@
       // Speed controls for each corner
       let speeds = {
         ur: 1.0, // Upper Right
-        ul: 0.6, // Upper Left
-        br: 0.7, // Bottom Right
-        bl: 0.5, // Bottom Left
+        ul: 0.1, // Upper Left
+        br: 0.1, // Bottom Right
+        bl: 0.1, // Bottom Left
       };
 
       // Get slider elements and value displays
@@ -248,9 +248,10 @@
           const margin = 50;
 
           // Upper Right Corner (user-controlled speed)
-          const urRawX = simpleNoise(time * speeds.ur, 1000) * fastIntensity;
+          const urRawX =
+            simpleNoise(time * speeds.ur - 1000, 1000) * fastIntensity;
           const urRawY =
-            simpleNoise(time * speeds.ur + 100, 2000) * fastIntensity;
+            simpleNoise(time * speeds.ur - 2000, 2000) * fastIntensity;
 
           // Upper Left Corner (user-controlled speed)
           const ulRawX = simpleNoise(time * speeds.ul, 3000) * slowIntensity;
@@ -270,16 +271,16 @@
           // Base corner positions
           const baseHalfSize = baseSize / 2;
 
-          // Clamp all offsets to keep corners within bounds
-          const urOffsetX =
+          // Calculate other offsets first
+          const brOffsetX =
             Math.max(
               -baseHalfSize,
-              Math.min(canvas.width - centerX - baseHalfSize - margin, urRawX),
+              Math.min(canvas.width - centerX - baseHalfSize - margin, brRawX),
             ) || 0;
-          const urOffsetY =
+          const brOffsetY =
             Math.max(
               -baseHalfSize,
-              Math.min(canvas.height - centerY + baseHalfSize - margin, urRawY),
+              Math.min(canvas.height - centerY - baseHalfSize - margin, brRawY),
             ) || 0;
 
           const ulOffsetX =
@@ -293,17 +294,6 @@
               Math.min(baseHalfSize, ulRawY),
             ) || 0;
 
-          const brOffsetX =
-            Math.max(
-              -baseHalfSize,
-              Math.min(canvas.width - centerX - baseHalfSize - margin, brRawX),
-            ) || 0;
-          const brOffsetY =
-            Math.max(
-              -baseHalfSize,
-              Math.min(canvas.height - centerY - baseHalfSize - margin, brRawY),
-            ) || 0;
-
           const blOffsetX =
             Math.max(
               -centerX + baseHalfSize + margin,
@@ -313,6 +303,30 @@
             Math.max(
               -baseHalfSize,
               Math.min(canvas.height - centerY - baseHalfSize - margin, blRawY),
+            ) || 0;
+
+          // Calculate urOffset with constraints to keep it "outside" the square
+          const urOffsetX =
+            Math.max(
+              brOffsetX, // Never less than bottom right X
+              Math.max(
+                -baseHalfSize,
+                Math.min(
+                  canvas.width - centerX - baseHalfSize - margin,
+                  urRawX,
+                ),
+              ),
+            ) || 0;
+          const urOffsetY =
+            Math.min(
+              ulOffsetY, // Never more than upper left Y
+              Math.max(
+                -baseHalfSize,
+                Math.min(
+                  canvas.height - centerY + baseHalfSize - margin,
+                  urRawY,
+                ),
+              ),
             ) || 0;
 
           // Define the four corners of the deformed square
@@ -396,7 +410,7 @@
 
       // Controls visibility toggle
       const controls = document.querySelector('.controls');
-      let controlsVisible = true;
+      let controlsVisible = false;
 
       document.addEventListener('keydown', function (event) {
         if (event.key === 'h' || event.key === 'H') {
@@ -406,6 +420,7 @@
       });
 
       // Initialize
+      console.log('Press "h" to toggle controls');
       resizeCanvas();
       window.addEventListener('resize', resizeCanvas);
       animate();
