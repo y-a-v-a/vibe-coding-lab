@@ -1,0 +1,97 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.1//EN"
+	"http://www.w3.org/TR/xhtml11/DTD/xhtml11.dtd">
+
+<html xmlns="http://www.w3.org/1999/xhtml" xml:lang="en">
+<head>
+	<meta http-equiv="Content-Type" content="text/html; charset=utf-8"/>
+
+	<title>Splash</title>
+<style type="text/css">
+body {
+	margin: 0;
+	padding: 0;
+	height: 100%;
+	width: 100%;
+	font-family: Monaco, Courier;
+	font-size: 16pt;
+	overflow: hidden;
+}
+</style>
+<script type="text/javascript">
+//<![CDATA[
+var body = document.getElementsByTagName("body");
+var width = window.outerWidth - 80;
+var height = window.outerHeight - 160;
+
+starFleet = function() {
+	var x = Math.floor(Math.random() * (width));
+	var y = Math.floor(Math.random() * (height));
+	for (var i = 1; i < (Math.floor(Math.random() * 12) + 32); i++) {
+	  if(!document.getElementById(i)) {
+  	  var star = createStar(i);
+      star.style.position = "absolute";
+	  star.style.top = y + "px";
+	  star.style.left = x + "px";
+	  body[0].appendChild(star);
+      setPosition(i);
+      }
+  }
+  setTimeout("starFleet()", 1000);
+}
+
+createStar = function(id) {
+	var r = Math.floor(Math.random() * 255);
+	var g = Math.floor(Math.random() * 255);
+	var b = Math.floor(Math.random() * 255);
+	var html = document.createElement("div");
+
+	html.style.color="rgb(" + r + "," + g + "," + b +")";
+	html.style.height = "12px";
+	html.style.width = "12px";
+	html.setAttribute("id",id);
+	html.innerHTML="*";
+	return html;
+}
+
+setPosition = function(id) {
+	var div = document.getElementById(id);
+	var posY = div.offsetTop;
+	var posX = div.offsetLeft;
+	
+	if ((posX < 0) || (posY > (height)) || (posX > (width)) || (posY < 0) ) {
+	  body[0].removeChild(div);
+    } else {
+	  if((id % 4) == 0) {
+	  	  div.style.top = posY - (id*(id%3)) + "px";
+	  	  div.style.left = posX + (id*2) + "px";
+		  div.style.MozOpacity= 1 - ((posX / 1000) / 1.5);
+	      //div.innerHTML = 1 - ((posX / 1000) / 1.5);
+      } else if((id % 4) == 1) {
+	  	  div.style.top = posY + (id*2) + id + "px";
+	  	  div.style.left = posX - (id*(id%3)) + id + "px";
+          div.style.MozOpacity= 1-(posY / 800);
+	      //div.innerHTML = 1-(posY / 800);
+      } else if((id % 4) == 2) {
+	  	  div.style.top = posY - (id*(id%3)) + id + "px";
+	  	  div.style.left = posX - (id*2) + id + "px";
+		  div.style.MozOpacity= (posX / 800);
+	      // div.innerHTML = (posX / 800);
+      } else {
+	  	  div.style.top = posY + (id*2) + id + "px";
+	  	  div.style.left = posX + (id*(id%3)) + id + "px";
+		  div.style.MozOpacity= 1-((posX / 700)/1.5);
+	      // div.innerHTML = 1-((posX / 700)/1.5);
+	  }
+      setTimeout("setPosition("+id+")", 100);
+	}
+}
+//]]>
+</script>
+</head>
+
+<body onload="starFleet()" style="background-color: #000;">
+<div style="position: relative; z-index:10; color: white;margin: 0 auto; width: 300px; height: 200px; opacity: 0.4; background-color: #303; margin-top: 200px; text-align: center; line-height: 200px;">Hello World!</div>
+
+</body>
+</html>

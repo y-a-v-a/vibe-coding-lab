@@ -1,164 +1,140 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Vibe Coding Lab - Projects</title>
-    <link rel="icon" href="data:,">
-    <style>
-        * {
-            margin: 0;
-            padding: 0;
-            box-sizing: border-box;
-        }
-        
-        body {
-            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
-            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
-            min-height: 100vh;
-            padding: 2rem;
-        }
-        
-        .container {
-            max-width: 800px;
-            margin: 0 auto;
-            background: rgba(255, 255, 255, 0.1);
-            backdrop-filter: blur(10px);
-            border-radius: 20px;
-            padding: 2rem;
-            box-shadow: 0 8px 32px rgba(0, 0, 0, 0.1);
-        }
-        
-        h1 {
-            text-align: center;
-            color: white;
-            font-size: 2.5rem;
-            margin-bottom: 2rem;
-            text-shadow: 0 2px 4px rgba(0, 0, 0, 0.3);
-        }
-        
-        .projects-grid {
-            display: grid;
-            gap: 1.5rem;
-            grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
-        }
-        
-        .project-card {
-            background: rgba(255, 255, 255, 0.2);
-            border-radius: 15px;
-            padding: 1.5rem;
-            transition: transform 0.3s ease, box-shadow 0.3s ease;
-            border: 1px solid rgba(255, 255, 255, 0.2);
-        }
-        
-        .project-card:hover {
-            transform: translateY(-5px);
-            box-shadow: 0 12px 25px rgba(0, 0, 0, 0.2);
-        }
-        
-        .project-card h2 {
-            color: white;
-            font-size: 1.3rem;
-            margin-bottom: 0.5rem;
-        }
-        
-        .project-card p {
-            color: rgba(255, 255, 255, 0.8);
-            margin-bottom: 1rem;
-            font-size: 0.9rem;
-        }
-        
-        .project-card a {
-            display: inline-block;
-            background: linear-gradient(45deg, #ff6b6b, #ffa726);
-            color: white;
-            text-decoration: none;
-            padding: 0.7rem 1.5rem;
-            border-radius: 25px;
-            font-weight: 500;
-            transition: transform 0.2s ease;
-        }
-        
-        .project-card a:hover {
-            transform: scale(1.05);
-        }
-        
-        .footer {
-            text-align: center;
-            margin-top: 2rem;
-            color: rgba(255, 255, 255, 0.7);
-            font-size: 0.9rem;
-        }
-    </style>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Vibe Coding Lab • Projects</title>
+  <link rel="icon" href="data:,">
+  <style>
+    body {
+      color: #202020;
+      font-size: 1.25em;
+      line-height: 1.3;
+      max-width: 100%;
+      margin: 1.2em;
+    }
+
+    @media (min-width: 1024px) {
+      body {
+        max-width: 36em;
+      }
+    }
+
+    a,
+    a:hover,
+    a:visited {
+      color: #303030;
+    }
+
+    a:hover {
+      text-decoration: none;
+    }
+
+    .description {
+        margin-left: 2em;
+        margin-bottom: 2em;
+    }
+  </style>
 </head>
 <body>
-    <div class="container">
-        <h1>🎨 Vibe Coding Lab</h1>
-        <div class="projects-grid">
-            <div class="project-card">
-                <h2>Antipodal Map</h2>
-                <p>Project: antipode</p>
-                
-                <a href="antipode/">View Project →</a>
-            </div>
-            <div class="project-card">
-                <h2>Chess Music: Game of the Century</h2>
-                <p>Project: bobby</p>
-                
-                <a href="bobby/">View Project →</a>
-            </div>
-            <div class="project-card">
-                <h2>Random Rectangles - Vanilla JS</h2>
-                <p>Project: eight-red-rects</p>
-                
-                <a href="eight-red-rects/">View Project →</a>
-            </div>
-            <div class="project-card">
-                <h2>Dynamic Malevich Red Square</h2>
-                <p>Project: kazimir</p>
-                <p style="font-size: 0.8rem; color: rgba(255, 255, 255, 0.6);">(c) Vincent Bruijn 2025</p>
-                <a href="kazimir/">View Project →</a>
-            </div>
-            <div class="project-card">
-                <h2>Chance & Order – Vibe Code</h2>
-                <p>Project: kenneth</p>
-                
-                <a href="kenneth/">View Project →</a>
-            </div>
-            <div class="project-card">
-                <h2>y-a-v-a • Interstices Variables • 2025</h2>
-                <p>Project: molnarium</p>
-                
-                <a href="molnarium/">View Project →</a>
-            </div>
-            <div class="project-card">
-                <h2>Vibe Coded - Cosmic Flow</h2>
-                <p>Project: project1</p>
-                <p style="font-size: 0.8rem; color: rgba(255, 255, 255, 0.6);">(c) 2025 Claude Code</p>
-                <a href="project1/">View Project →</a>
-            </div>
-            <div class="project-card">
-                <h2>y-a-v-a • Progressive Grid Pattern • 2025</h2>
-                <p>Project: ryszard</p>
-                <p style="font-size: 0.8rem; color: rgba(255, 255, 255, 0.6);">(c) Vincent Bruijn 2025</p>
-                <a href="ryszard/">View Project →</a>
-            </div>
-            <div class="project-card">
-                <h2>Edge Path in Square</h2>
-                <p>Project: vera</p>
-                
-                <a href="vera/">View Project →</a>
-            </div>
-            <div class="project-card">
-                <h2>Follow the Sun Walk</h2>
-                <p>Project: walk</p>
-                
-                <a href="walk/">View Project →</a>
-            </div>
+  <div class="container">
+    <h1>🎨 Vibe Coding Lab</h1>
+    <div class="projects-grid">
+    <h2>list of works</h2>
+      <div class="project-card">
+        <a href="antipode/" target="_blank">
+            <h3>Antipodal Map</h3>
+        </a>
+        <div class="description">
+            <p>Project: antipode</p>
+            
         </div>
-        <div class="footer">
-            <p>Generated automatically • Vibe Coded Projects</p>
+      </div>
+      <div class="project-card">
+        <a href="bobby/" target="_blank">
+            <h3>Chess Music: Game of the Century</h3>
+        </a>
+        <div class="description">
+            <p>Project: bobby</p>
+            
         </div>
+      </div>
+      <div class="project-card">
+        <a href="eight-red-rects/" target="_blank">
+            <h3>Random Rectangles - Vanilla JS</h3>
+        </a>
+        <div class="description">
+            <p>Project: eight-red-rects</p>
+            
+        </div>
+      </div>
+      <div class="project-card">
+        <a href="kazimir/" target="_blank">
+            <h3>Dynamic Malevich Red Square</h3>
+        </a>
+        <div class="description">
+            <p>Project: kazimir</p>
+            <p>(c) Vincent Bruijn 2025</p>
+        </div>
+      </div>
+      <div class="project-card">
+        <a href="kenneth/" target="_blank">
+            <h3>Chance & Order – Vibe Code</h3>
+        </a>
+        <div class="description">
+            <p>Project: kenneth</p>
+            
+        </div>
+      </div>
+      <div class="project-card">
+        <a href="molnarium/" target="_blank">
+            <h3>y-a-v-a • Interstices Variables • 2025</h3>
+        </a>
+        <div class="description">
+            <p>Project: molnarium</p>
+            
+        </div>
+      </div>
+      <div class="project-card">
+        <a href="project1/" target="_blank">
+            <h3>Vibe Coded - Cosmic Flow</h3>
+        </a>
+        <div class="description">
+            <p>Project: project1</p>
+            <p>(c) 2025 Claude Code</p>
+        </div>
+      </div>
+      <div class="project-card">
+        <a href="ryszard/" target="_blank">
+            <h3>y-a-v-a • Progressive Grid Pattern • 2025</h3>
+        </a>
+        <div class="description">
+            <p>Project: ryszard</p>
+            <p>(c) Vincent Bruijn 2025</p>
+        </div>
+      </div>
+      <div class="project-card">
+        <a href="vera/" target="_blank">
+            <h3>Edge Path in Square</h3>
+        </a>
+        <div class="description">
+            <p>Project: vera</p>
+            
+        </div>
+      </div>
+      <div class="project-card">
+        <a href="walk/" target="_blank">
+            <h3>Follow the Sun Walk</h3>
+        </a>
+        <div class="description">
+            <p>Project: walk</p>
+            
+        </div>
+      </div>
     </div>
+    <div class="footer">
+      <p>Generated automatically • Vibe Coded Projects</p>
+    </div>
+  </div>
 </body>
 </html>
