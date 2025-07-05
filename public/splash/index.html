@@ -1,10 +1,8 @@
-<?xml version="1.0" encoding="UTF-8"?>
-<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.1//EN"
-	"http://www.w3.org/TR/xhtml11/DTD/xhtml11.dtd">
-
-<html xmlns="http://www.w3.org/1999/xhtml" xml:lang="en">
+<!DOCTYPE html>
+<html lang="en">
 <head>
-	<meta http-equiv="Content-Type" content="text/html; charset=utf-8"/>
+	<meta charset="UTF-8">
+	<meta name="viewport" content="width=device-width, initial-scale=1.0">
 
 	<title>Splash</title>
 <style type="text/css">
@@ -19,7 +17,6 @@ body {
 }
 </style>
 <script type="text/javascript">
-//<![CDATA[
 var body = document.getElementsByTagName("body");
 var width = window.outerWidth - 80;
 var height = window.outerHeight - 160;
@@ -65,32 +62,33 @@ setPosition = function(id) {
 	  if((id % 4) == 0) {
 	  	  div.style.top = posY - (id*(id%3)) + "px";
 	  	  div.style.left = posX + (id*2) + "px";
-		  div.style.MozOpacity= 1 - ((posX / 1000) / 1.5);
+		  div.style.opacity = 1 - ((posX / 1000) / 1.5);
 	      //div.innerHTML = 1 - ((posX / 1000) / 1.5);
       } else if((id % 4) == 1) {
 	  	  div.style.top = posY + (id*2) + id + "px";
 	  	  div.style.left = posX - (id*(id%3)) + id + "px";
-          div.style.MozOpacity= 1-(posY / 800);
+          div.style.opacity = 1-(posY / 800);
 	      //div.innerHTML = 1-(posY / 800);
       } else if((id % 4) == 2) {
 	  	  div.style.top = posY - (id*(id%3)) + id + "px";
 	  	  div.style.left = posX - (id*2) + id + "px";
-		  div.style.MozOpacity= (posX / 800);
+		  div.style.opacity = (posX / 800);
 	      // div.innerHTML = (posX / 800);
       } else {
 	  	  div.style.top = posY + (id*2) + id + "px";
 	  	  div.style.left = posX + (id*(id%3)) + id + "px";
-		  div.style.MozOpacity= 1-((posX / 700)/1.5);
+		  div.style.opacity = 1-((posX / 700)/1.5);
 	      // div.innerHTML = 1-((posX / 700)/1.5);
 	  }
       setTimeout("setPosition("+id+")", 100);
 	}
 }
-//]]>
+
+window.addEventListener('load', starFleet);
 </script>
 </head>
 
-<body onload="starFleet()" style="background-color: #000;">
+<body style="background-color: #000;">
 <div style="position: relative; z-index:10; color: white;margin: 0 auto; width: 300px; height: 200px; opacity: 0.4; background-color: #303; margin-top: 200px; text-align: center; line-height: 200px;">Hello World!</div>
 
 </body>
