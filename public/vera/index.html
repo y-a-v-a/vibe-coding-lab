@@ -1,0 +1,100 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <title>Edge Path in Square</title>
+    <style>
+      html,
+      body {
+        margin: 0;
+        height: 100%;
+        background: white;
+        display: flex;
+        justify-content: center;
+        align-items: center;
+        overflow: visible;
+      }
+      svg {
+        height: 80vmin;
+        width: 80vmin;
+        overflow: visible;
+      }
+    </style>
+  </head>
+  <body>
+    <svg id="canvas" viewBox="0 0 100 100" xmlns="http://www.w3.org/2000/svg">
+      <!-- No visible border square -->
+      <rect x="0" y="0" width="100" height="100" fill="none" />
+    </svg>
+
+    <script>
+      const svg = document.getElementById('canvas');
+
+      const edges = {
+        top: () => [Math.random() * 100, 0],
+        right: () => [100, Math.random() * 100],
+        bottom: () => [Math.random() * 100, 100],
+        left: () => [0, Math.random() * 100],
+      };
+      const edgeKeys = Object.keys(edges);
+
+      let points = [];
+      let lastEdge = null;
+
+      function generatePoints() {
+        points = [];
+        lastEdge = null;
+        for (let i = 0; i < 6; i++) {
+          let edge;
+          do {
+            edge = edgeKeys[Math.floor(Math.random() * 4)];
+          } while (edge === lastEdge);
+          lastEdge = edge;
+          points.push(edges[edge]());
+        }
+      }
+
+      function drawLines() {
+        for (let i = 0; i < points.length - 1; i++) {
+          const [x1, y1] = points[i];
+          const [x2, y2] = points[i + 1];
+
+          const line = document.createElementNS(
+            'http://www.w3.org/2000/svg',
+            'line',
+          );
+          line.setAttribute('x1', x1);
+          line.setAttribute('y1', y1);
+          line.setAttribute('x2', x2);
+          line.setAttribute('y2', y2);
+          line.setAttribute('stroke', 'black');
+          line.setAttribute('stroke-width', 1 + i);
+          line.setAttribute('stroke-linecap', 'round');
+          svg.appendChild(line);
+        }
+      }
+
+      function drawNewPath() {
+        generatePoints();
+        drawLines();
+      }
+
+      function clearAndRedraw() {
+        while (svg.lastChild && svg.lastChild.nodeName === 'line') {
+          svg.removeChild(svg.lastChild);
+        }
+        drawNewPath();
+      }
+
+      drawNewPath();
+
+      window.addEventListener('keydown', (e) => {
+        if (e.key === 'r' || e.key === 'R') {
+          drawNewPath();
+        } else if (e.key === 'c' || e.key === 'C') {
+          clearAndRedraw();
+        }
+      });
+    </script>
+  </body>
+</html>

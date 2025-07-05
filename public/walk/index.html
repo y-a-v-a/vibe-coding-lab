@@ -1,0 +1,136 @@
+<!DOCTYPE html>
+<html>
+  <head>
+    <title>Follow the Sun Walk</title>
+    <meta charset="utf-8" />
+    <style>
+      #map {
+        height: 100vh;
+        width: 100%;
+      }
+      #controls {
+        position: absolute;
+        top: 10px;
+        left: 10px;
+        background: white;
+        padding: 10px;
+        z-index: 5;
+        box-shadow: 0 2px 6px rgba(0, 0, 0, 0.3);
+      }
+    </style>
+  </head>
+  <body>
+    <div id="controls">
+      <label for="walk-date">Choose date:</label>
+      <input type="date" id="walk-date" />
+    </div>
+    <div id="map"></div>
+
+    <script src="https://unpkg.com/suncalc@1.9.0/suncalc.js"></script>
+    <script
+      src="https://maps.googleapis.com/maps/api/js?key=AIzaSyAC1v7fZu68Z3oEwX2bNkTijeqC7kh0uzI&callback=initMap"
+      async
+      defer
+    ></script>
+    <script>
+      let map;
+
+      function initMap() {
+        map = new google.maps.Map(document.getElementById('map'), {
+          center: { lat: 52.3731, lng: 4.8922 },
+          zoom: 7,
+        });
+
+        map.addListener('click', (e) => {
+          const dateInput = document.getElementById('walk-date');
+          const date = dateInput.value ? new Date(dateInput.value) : new Date();
+          simulateWalk(e.latLng.lat(), e.latLng.lng(), date);
+        });
+      }
+
+      function simulateWalk(lat, lng, date) {
+        const speedKmPerH = 5;
+        const stepMinutes = 5;
+        const stepCount = Math.ceil((24 * 60) / stepMinutes);
+        const distancePerStep = (speedKmPerH / 60) * stepMinutes; // km
+        const distancePerStepMeters = distancePerStep * 1000;
+
+        const times = SunCalc.getTimes(date, lat, lng);
+        const sunrise = times.sunrise;
+        const sunset = times.sunset;
+
+        const path = [{ lat, lng }];
+        let currentLat = lat;
+        let currentLng = lng;
+
+        const totalMinutes = (sunset - sunrise) / (1000 * 60);
+        const steps = Math.floor(totalMinutes / stepMinutes);
+        const startTime = sunrise.getTime();
+
+        for (let i = 0; i < steps; i++) {
+          const time = new Date(startTime + i * stepMinutes * 60 * 1000);
+          const pos = SunCalc.getPosition(time, currentLat, currentLng);
+          const azimuth = pos.azimuth + Math.PI; // radians from north (clockwise)
+
+          const delta = computeOffset(
+            currentLat,
+            currentLng,
+            distancePerStepMeters,
+            azimuth,
+          );
+          currentLat = delta.lat;
+          currentLng = delta.lng;
+          path.push({ lat: currentLat, lng: currentLng });
+        }
+
+        new google.maps.Polyline({
+          path,
+          map,
+          strokeColor: '#FF5722',
+          strokeOpacity: 1.0,
+          strokeWeight: 3,
+        });
+
+        new google.maps.Marker({
+          position: { lat, lng },
+          map,
+          title: 'Start Point',
+          icon: 'http://maps.google.com/mapfiles/ms/icons/green-dot.png',
+        });
+
+        const end = path[path.length - 1];
+        new google.maps.Marker({
+          position: end,
+          map,
+          title: 'End Point',
+          icon: 'http://maps.google.com/mapfiles/ms/icons/red-dot.png',
+        });
+
+        map.panTo(end);
+      }
+
+      function computeOffset(lat, lng, distance, azimuthRad) {
+        const R = 6378137; // Earth radius in meters
+        const dByR = distance / R;
+        const latRad = (lat * Math.PI) / 180;
+        const lngRad = (lng * Math.PI) / 180;
+
+        const newLat = Math.asin(
+          Math.sin(latRad) * Math.cos(dByR) +
+            Math.cos(latRad) * Math.sin(dByR) * Math.cos(azimuthRad),
+        );
+        const newLng =
+          lngRad +
+          Math.atan2(
+            Math.sin(azimuthRad) * Math.sin(dByR) * Math.cos(latRad),
+            Math.cos(dByR) - Math.sin(latRad) * Math.sin(newLat),
+          );
+
+        return {
+          lat: (newLat * 180) / Math.PI,
+          lng: (newLng * 180) / Math.PI,
+        };
+      }
+    </script>
+  </body>
+</html>

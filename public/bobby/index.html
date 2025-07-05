@@ -1,0 +1,178 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Chess Music: Game of the Century</title>
+    <style>
+      body {
+        background: #111;
+        color: #f0f0f0;
+        font-family: monospace;
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+        justify-content: flex-start;
+        min-height: 100vh;
+        padding: 1em;
+      }
+      #volume,
+      #notationInput {
+        margin-top: 1em;
+      }
+      textarea {
+        width: 80%;
+        height: 100px;
+        background: #222;
+        color: #f0f0f0;
+        border: 1px solid #555;
+        font-family: monospace;
+        font-size: 1em;
+        padding: 0.5em;
+      }
+      #board {
+        display: grid;
+        grid-template-columns: repeat(8, 40px);
+        grid-template-rows: repeat(8, 40px);
+        gap: 2px;
+        margin-top: 2em;
+      }
+      .cell {
+        width: 40px;
+        height: 40px;
+        background: #333;
+        transition: all 0.2s ease;
+      }
+      .light {
+        background: #888;
+      }
+    </style>
+  </head>
+  <body>
+    <h1>Game of the Century: Musical Edition</h1>
+    <textarea id="notationInput">
+Nf3 Nf6 c4 g6 Nc3 Bg7 d4 O-O Bf4 d5 Qb3 dxc4 Qxc4 c6
+    e4 Nbd7 Rd1 Nb6 Qc5 Bg4 Bg5 Nxc3 bxc3 Nxe4 Bxe7 Qb6 Bc4 Nxc3 Bxf8 Rxf8
+    Qb3 Qxb3 axb3 Rfe8+ Kf1 Bxc4+ Kg1 Ne2+ Kf1 Nxd4+ Kg1 Ne2+ Kf1 Nc3+
+    Kg1 Bxb3 Rb1 Nxb1 Rxb1 a5</textarea
+    >
+    <button onclick="playGame()">Play Music</button>
+    <label id="volume">
+      Volume:
+      <input type="range" id="vol" min="0" max="1" step="0.01" value="0.1" />
+    </label>
+
+    <div id="board"></div>
+
+    <script>
+      const audioCtx = new (window.AudioContext || window.webkitAudioContext)();
+
+      const pieceMap = {
+        K: 'sine',
+        Q: 'square',
+        R: 'sawtooth',
+        B: 'triangle',
+        N: 'sine',
+        P: 'square',
+      };
+
+      const fileMap = {
+        a: 261.63,
+        b: 293.66,
+        c: 329.63,
+        d: 349.23,
+        e: 392.0,
+        f: 440.0,
+        g: 493.88,
+        h: 523.25,
+      };
+
+      function playNote(freq, type, time, duration = 0.4, gainValue = 0.1) {
+        const vol = document.getElementById('vol').value;
+        const osc = audioCtx.createOscillator();
+        const gain = audioCtx.createGain();
+        osc.type = type;
+        osc.frequency.value = freq;
+        gain.gain.value = gainValue * vol;
+        osc.connect(gain).connect(audioCtx.destination);
+        osc.start(time);
+        osc.stop(time + duration);
+      }
+
+      function createHarmony(freq, count = 3) {
+        const harmony = [freq];
+        for (let i = 1; i < count; i++) {
+          harmony.push(freq * Math.pow(2, i / 12));
+        }
+        return harmony;
+      }
+
+      function parseMove(move) {
+        const isCastle = move.includes('O');
+        if (isCastle)
+          return [{ type: 'triangle', freqs: [220, 440, 660], duration: 0.6 }];
+
+        let piece = move.match(/[KQRBN]/)?.[0] || 'P';
+        let file = move.match(/[a-h]/)?.[0] || 'e';
+        let rank = move.match(/[1-8]/)?.[0] || '4';
+        let freq = fileMap[file] / 2;
+        let mod = 1 + parseInt(rank) / 8;
+        let duration = 0.3 + parseInt(rank) / 16;
+        let freqs = createHarmony(freq * mod, move.includes('x') ? 4 : 3);
+        return [{ type: pieceMap[piece], freqs, duration, file, rank }];
+      }
+
+      function flickerCell(file, rank, duration) {
+        const files = 'abcdefgh';
+        const col = files.indexOf(file);
+        const row = 8 - parseInt(rank);
+        const index = row * 8 + col;
+        const cell = document.querySelectorAll('.cell')[index];
+        if (cell) {
+          cell.style.transform =
+            'scale(1.3) rotate(' + (Math.random() * 30 - 15) + 'deg)';
+          cell.style.opacity = 0.4 + Math.random() * 0.6;
+          setTimeout(() => {
+            cell.style.transform = 'scale(1) rotate(0deg)';
+            cell.style.opacity = 1;
+          }, duration * 1000);
+        }
+      }
+
+      function playGame() {
+        const input = document.getElementById('notationInput').value;
+        const moves = input.trim().split(/\s+/);
+        let time = audioCtx.currentTime + 0.5;
+
+        moves.forEach((move) => {
+          const notes = parseMove(move);
+          notes.forEach((note) => {
+            note.freqs.forEach((freq) => {
+              playNote(freq, note.type, time, note.duration);
+            });
+
+            // Synchronize cell flicker using timeout
+            const delay = (time - audioCtx.currentTime) * 1000;
+            setTimeout(
+              () => flickerCell(note.file, note.rank, note.duration),
+              delay,
+            );
+
+            time += note.duration + 0.05;
+          });
+        });
+      }
+
+      // Create board
+      const board = document.getElementById('board');
+      for (let row = 0; row < 8; row++) {
+        for (let col = 0; col < 8; col++) {
+          const cell = document.createElement('div');
+          cell.className = 'cell';
+          if ((row + col) % 2 === 0) cell.classList.add('light');
+          board.appendChild(cell);
+        }
+      }
+    </script>
+  </body>
+</html>

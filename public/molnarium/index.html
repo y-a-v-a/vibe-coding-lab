@@ -1,0 +1,227 @@
+<!DOCTYPE html>
+<html>
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <link rel="icon" href="data:," />
+    <title>y-a-v-a • Interstices Variables • 2025</title>
+    <style>
+      body {
+        margin: 0;
+        padding: 0;
+        overflow: hidden;
+        display: flex;
+        justify-content: center;
+        align-items: center;
+        min-height: 100vh;
+        background: #f9f9f9;
+        color: #202020;
+        font-size: 1.25em;
+        line-height: 1.3;
+      }
+
+      #grid {
+        display: grid;
+        grid-template-columns: repeat(8, 1fr);
+        width: 90vmin;
+        height: 90vmin;
+      }
+
+      .hamburger-menu {
+        position: fixed;
+        top: 20px;
+        left: 20px;
+        width: 30px;
+        height: 30px;
+        cursor: pointer;
+        z-index: 1100;
+        display: flex;
+        flex-direction: column;
+        justify-content: center;
+        align-items: center;
+        gap: 6px;
+      }
+
+      .hamburger-line {
+        width: 20px;
+        height: 2px;
+        background-color: #333;
+        transition: all 0.3s ease;
+        transform-origin: center;
+      }
+
+      .hamburger-menu.active .hamburger-line:first-child {
+        transform: rotate(45deg) translate(4px, 2px);
+      }
+
+      .hamburger-menu.active .hamburger-line:last-child {
+        transform: rotate(-45deg) translate(4px, -2px);
+      }
+
+      .menu-panel {
+        position: fixed;
+        top: 0;
+        left: -410px;
+        width: 350px;
+        height: 100vh;
+        background-color: rgba(255, 255, 255, 0.95);
+        transition: left 0.3s ease;
+        padding: 70px 30px 30px 30px;
+        z-index: 1050;
+        overflow-y: auto;
+      }
+
+      .menu-panel.active {
+        left: 0;
+      }
+
+      .menu-panel .info {
+        margin-bottom: 30px;
+      }
+
+      .menu-panel .controls {
+        flex-direction: column;
+        gap: 20px;
+        margin-bottom: 0;
+      }
+
+      a,
+      a:active,
+      a:visited {
+        color: inherit;
+      }
+
+      .progress-bar {
+        position: fixed;
+        bottom: 0;
+        left: 0;
+        width: 100%;
+        height: 4px;
+        background-color: rgba(0, 0, 0, 0.1);
+        z-index: 1000;
+      }
+
+      .progress-fill {
+        height: 100%;
+        background-color: rgba(128, 0, 128, 0.5);
+        width: 0%;
+        transition: width 0.1s linear;
+      }
+    </style>
+  </head>
+  <body>
+    <div id="grid"></div>
+
+    <div class="hamburger-menu" id="hamburger-menu">
+      <div class="hamburger-line"></div>
+      <div class="hamburger-line"></div>
+    </div>
+
+    <div class="menu-panel" id="menu-panel">
+      <div class="info">
+        <h1>Interstices Variables</h1>
+        <p>
+          Inspired by the Interstices works of Vera Molnár
+          <br /><br />
+          Vincent Bruijn – 2025<br />
+          <a href="https://www.y-a-v-a.org" target="_blank">y-a-v-a.org</a>
+        </p>
+      </div>
+      <div class="controls">
+        <label
+          >Randomness:
+          <input id="randomness" type="range" min="0" max="30" value="15" />
+        </label>
+      </div>
+    </div>
+
+    <div class="progress-bar">
+      <div class="progress-fill" id="progress-fill"></div>
+    </div>
+
+    <script>
+      const grid = document.getElementById('grid');
+      const hamburgerMenu = document.getElementById('hamburger-menu');
+      const menuPanel = document.getElementById('menu-panel');
+      const randomnessSlider = document.getElementById('randomness');
+      const progressFill = document.getElementById('progress-fill');
+
+      let randomness = parseFloat(randomnessSlider.value);
+      let progressInterval;
+
+      function drawGrid(autoRandomness = false) {
+        if (autoRandomness) {
+          randomness = Math.random() * 30;
+          randomnessSlider.value = randomness;
+        }
+
+        grid.innerHTML = '';
+        for (let i = 0; i < 64; i++) {
+          const cell = document.createElement('div');
+          cell.style.position = 'relative';
+          cell.style.aspectRatio = '1 / 1';
+          cell.style.overflow = 'visible';
+
+          const square = document.createElement('div');
+          square.style.width = '100%';
+          square.style.height = '100%';
+          square.style.backgroundColor = 'rgba(128, 0, 128, 0.5)';
+          square.style.position = 'absolute';
+          square.style.left = `${
+            50 - randomness / 2 + Math.random() * randomness
+          }%`;
+          square.style.top = `${
+            50 - randomness / 2 + Math.random() * randomness
+          }%`;
+          square.style.transform = 'translate(-50%, -50%)';
+
+          cell.appendChild(square);
+          grid.appendChild(cell);
+        }
+      }
+
+      randomnessSlider.addEventListener('input', () => {
+        randomness = parseFloat(randomnessSlider.value);
+        drawGrid();
+        updateProgress();
+      });
+
+      hamburgerMenu.addEventListener('click', () => {
+        hamburgerMenu.classList.toggle('active');
+        menuPanel.classList.toggle('active');
+      });
+
+      document.addEventListener('keydown', (e) => {
+        if (e.key === 'h' || e.key === 'H') {
+          hamburgerMenu.classList.toggle('active');
+          menuPanel.classList.toggle('active');
+        }
+      });
+
+      drawGrid();
+
+      function updateProgress() {
+        if (progressInterval) {
+          clearInterval(progressInterval);
+        }
+
+        let progress = 0;
+        progressFill.style.width = '0%';
+        progressInterval = setInterval(() => {
+          progress += 100 / 170; // 17000ms / 100ms = 170 steps
+          progressFill.style.width = progress + '%';
+          if (progress >= 100) {
+            progress = 0;
+            progressFill.style.width = '0%';
+          }
+        }, 100);
+      }
+
+      updateProgress();
+      setInterval(() => {
+        drawGrid(true);
+        updateProgress();
+      }, 17000);
+    </script>
+  </body>
+</html>

@@ -1,0 +1,100 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <title>Chance & Order – Vibe Code</title>
+    <style>
+      body {
+        margin: 0;
+        background: #fafafa;
+        display: flex;
+        justify-content: center;
+        align-items: center;
+        height: 100vh;
+      }
+      canvas {
+        border: 1px solid #999;
+      }
+    </style>
+  </head>
+  <body>
+    <canvas id="c" width="600" height="600"></canvas>
+    <script>
+      const canvas = document.getElementById('c');
+      const ctx = canvas.getContext('2d');
+      const size = 8; // grid divisions
+      const w = canvas.width;
+      const cell = w / size;
+
+      function drawParallelLines(ax, ay, bx, by, thickness, spacing, color) {
+        const dx = bx - ax;
+        const dy = by - ay;
+        const len = Math.sqrt(dx * dx + dy * dy);
+        const offsetX = (dy / len) * spacing;
+        const offsetY = -(dx / len) * spacing;
+
+        ctx.lineWidth = thickness;
+        ctx.strokeStyle = color;
+        for (let i = -1; i <= 1; i += 2) {
+          ctx.beginPath();
+          ctx.moveTo(ax + i * offsetX, ay + i * offsetY);
+          ctx.lineTo(bx + i * offsetX, by + i * offsetY);
+          ctx.stroke();
+        }
+      }
+
+      function drawChanceOrder(
+        rotation = 0,
+        color = 'rgba(0,0,0,0.6)',
+        thickness = 2,
+        spacing = 2,
+      ) {
+        const pts = Array.from({ length: size * size }, (_, i) => i);
+        shuffle(pts);
+        ctx.save();
+        ctx.translate(w / 2, w / 2);
+        ctx.rotate(rotation);
+        ctx.translate(-w / 2, -w / 2);
+        for (let i = 0; i < size * 2; i++) {
+          const a = pts[(i * 2) % pts.length];
+          const b = pts[(i * 2 + 1) % pts.length];
+          const ax = ((a % size) + 0.5) * cell;
+          const ay = (Math.floor(a / size) + 0.5) * cell;
+          const bx = ((b % size) + 0.5) * cell;
+          const by = (Math.floor(b / size) + 0.5) * cell;
+          drawParallelLines(ax, ay, bx, by, thickness, spacing, color);
+        }
+        ctx.restore();
+      }
+
+      function shuffle(a) {
+        for (let i = a.length - 1; i > 0; i--) {
+          const j = Math.floor(Math.random() * (i + 1));
+          [a[i], a[j]] = [a[j], a[i]];
+        }
+      }
+
+      function drawAll() {
+        ctx.fillStyle = '#fff';
+        ctx.fillRect(0, 0, w, w);
+        const colors = [
+          'rgba(200,10,10,0.6)',
+          'rgba(10,150,10,0.6)',
+          'rgba(10,10,200,0.6)',
+          'rgba(0,0,0,0.4)',
+        ];
+        for (let i = 0; i < 4; i++) {
+          drawChanceOrder((Math.PI / 2) * i, colors[i], 2, 2);
+        }
+      }
+
+      drawAll();
+
+      document.addEventListener('keydown', (e) => {
+        if (e.key === 'r') {
+          drawAll();
+        }
+      });
+    </script>
+  </body>
+</html>
