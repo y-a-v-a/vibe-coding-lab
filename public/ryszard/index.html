@@ -28,10 +28,10 @@
         display: grid;
         grid-template-columns: repeat(6, 1fr);
         grid-template-rows: repeat(6, 1fr);
-        gap: 4px;
-        padding: 10px;
+        gap: 2px;
+        padding: 2px;
         background-color: #333;
-        border-radius: 8px;
+        border-radius: 1px;
       }
 
       .square-a {
@@ -40,7 +40,6 @@
         grid-template-rows: repeat(6, 1fr);
         gap: 1px;
         background-color: #666;
-        border-radius: 2px;
         width: 60px;
         height: 60px;
       }
@@ -68,6 +67,7 @@
         margin: 0;
         font-size: 14px;
         color: #666;
+        line-height: 1.5;
       }
 
       .controls {
@@ -136,15 +136,106 @@
         color: #333;
         font-weight: bold;
       }
+
+      .progress-bar-container {
+        position: fixed;
+        bottom: 0;
+        left: 0;
+        width: 100%;
+        height: 4px;
+        background-color: #e0e0e0;
+        z-index: 1000;
+      }
+
+      .progress-bar {
+        height: 100%;
+        width: 0%;
+        background-color: #b0b0b0;
+        transition: width 0.1s linear;
+      }
+
+      .hamburger-menu {
+        position: fixed;
+        top: 20px;
+        left: 20px;
+        width: 30px;
+        height: 30px;
+        cursor: pointer;
+        z-index: 1100;
+        display: flex;
+        flex-direction: column;
+        justify-content: center;
+        align-items: center;
+        gap: 6px;
+      }
+
+      .hamburger-line {
+        width: 20px;
+        height: 2px;
+        background-color: #333;
+        transition: all 0.3s ease;
+        transform-origin: center;
+      }
+
+      .hamburger-menu.active .hamburger-line:first-child {
+        transform: rotate(45deg) translate(4px, 2px);
+      }
+
+      .hamburger-menu.active .hamburger-line:last-child {
+        transform: rotate(-45deg) translate(4px, -2px);
+      }
+
+      .menu-panel {
+        position: fixed;
+        top: 0;
+        left: -400px;
+        width: 350px;
+        height: 100vh;
+        background-color: rgba(255, 255, 255, 0.95);
+        backdrop-filter: blur(10px);
+        box-shadow: 2px 0 10px rgba(0, 0, 0, 0.1);
+        transition: left 0.3s ease;
+        padding: 70px 30px 30px 30px;
+        z-index: 1050;
+        overflow-y: auto;
+      }
+
+      .menu-panel.active {
+        left: 0;
+      }
+
+      .menu-panel .info {
+        margin-bottom: 30px;
+      }
+
+      .menu-panel .controls {
+        flex-direction: column;
+        gap: 20px;
+        margin-bottom: 0;
+      }
+      a,
+      a:active,
+      a:visited {
+        color: inherit;
+      }
     </style>
   </head>
   <body>
-    <div class="container">
+    <div class="hamburger-menu" id="hamburgerMenu" onclick="toggleMenu()">
+      <div class="hamburger-line"></div>
+      <div class="hamburger-line"></div>
+    </div>
+
+    <div class="menu-panel" id="menuPanel">
       <div class="info">
         <h1>Progressive Grid Pattern</h1>
         <p>
           Each 6×6 grid (Square A) has progressively more black cells, arranged
-          in a 6×6 layout (Square B)
+          in a 6×6 layout (Square B). This work is inspired by the works of
+          Ryszard Winiarski.
+          <br /><br />
+          Vincent Bruijn – 2025
+          <a href="https://www.y-a-v-a.org" target="_blank">y-a-v-a.org</a>
         </p>
       </div>
       <div class="controls">
@@ -166,11 +257,20 @@
           <span class="toggle-label" id="toggleStatus">OFF</span>
         </div>
       </div>
+    </div>
+
+    <div class="container">
       <div class="square-b" id="squareB"></div>
     </div>
 
+    <div class="progress-bar-container">
+      <div class="progress-bar" id="progressBar"></div>
+    </div>
+
     <script>
-      let keepState = false;
+      let keepState = true;
+      let autoRefreshInterval = null;
+      let progressInterval = null;
 
       function createSquareA(
         blackCellCount,
@@ -200,7 +300,9 @@
               }
             }
             if (currentWhiteCells.length > 0) {
-              const randomIndex = Math.floor(Math.random() * currentWhiteCells.length);
+              const randomIndex = Math.floor(
+                Math.random() * currentWhiteCells.length,
+              );
               const randomWhiteIndex = currentWhiteCells[randomIndex];
               blackCellIndices.push(randomWhiteIndex);
             }
@@ -246,7 +348,7 @@
         for (let i = 1; i <= 36; i++) {
           const result = createSquareA(i, randomize, previousSquareState);
           squareB.appendChild(result.element);
-          
+
           // For Keep State mode, each square inherits from the previous square
           if (keepState) {
             previousSquareState = result.state;
@@ -256,6 +358,7 @@
 
       function randomizeCells() {
         createSquareB(true);
+        startAutoRefresh(); // Reset timer and progress bar
       }
 
       function resetToSequential() {
@@ -263,6 +366,7 @@
         keepState = false;
         updateToggleUI();
         createSquareB(false);
+        startAutoRefresh(); // Reset timer and progress bar
       }
 
       function toggleKeepState() {
@@ -272,6 +376,7 @@
         if (!keepState) {
           createSquareB(false);
         }
+        startAutoRefresh(); // Reset timer and progress bar
       }
 
       function updateToggleUI() {
@@ -287,8 +392,63 @@
         }
       }
 
+      function updateProgressBar() {
+        const progressBar = document.getElementById('progressBar');
+        let progress = 0;
+        const increment = 100 / 170; // 17 seconds = 170 intervals of 100ms
+
+        if (progressInterval) {
+          clearInterval(progressInterval);
+        }
+
+        progressBar.style.width = '0%';
+
+        progressInterval = setInterval(() => {
+          progress += increment;
+          if (progress >= 100) {
+            progress = 0;
+          }
+          progressBar.style.width = progress + '%';
+        }, 100); // Update every 100ms
+      }
+
+      function startAutoRefresh() {
+        if (autoRefreshInterval) {
+          clearInterval(autoRefreshInterval);
+        }
+        autoRefreshInterval = setInterval(() => {
+          randomizeCells();
+        }, 17000); // 17 seconds
+
+        updateProgressBar();
+      }
+
+      function stopAutoRefresh() {
+        if (autoRefreshInterval) {
+          clearInterval(autoRefreshInterval);
+          autoRefreshInterval = null;
+        }
+        if (progressInterval) {
+          clearInterval(progressInterval);
+          progressInterval = null;
+        }
+        document.getElementById('progressBar').style.width = '0%';
+      }
+
+      function toggleMenu() {
+        const hamburgerMenu = document.getElementById('hamburgerMenu');
+        const menuPanel = document.getElementById('menuPanel');
+
+        hamburgerMenu.classList.toggle('active');
+        menuPanel.classList.toggle('active');
+      }
+
       // Initialize the pattern when the page loads
-      document.addEventListener('DOMContentLoaded', () => createSquareB(false));
+      document.addEventListener('DOMContentLoaded', () => {
+        updateToggleUI();
+        createSquareB(true);
+        startAutoRefresh();
+      });
     </script>
   </body>
 </html>
