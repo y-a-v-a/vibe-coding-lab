@@ -3,18 +3,20 @@
   <head>
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <title>Progressive Grid Pattern</title>
+    <title>y-a-v-a • Progressive Grid Pattern • 2025</title>
     <link rel="icon" href="data:," />
     <style>
       body {
         margin: 0;
         padding: 20px;
-        background-color: #f0f0f0;
+        background-color: #f9f9f9;
         display: flex;
         justify-content: center;
         align-items: center;
         min-height: 100vh;
-        font-family: Arial, sans-serif;
+        color: #202020;
+        font-size: 1.25em;
+        line-height: 1.3;
       }
 
       .container {
@@ -46,35 +48,14 @@
 
       .grid-cell {
         background-color: white;
-        border-radius: 1px;
       }
 
       .grid-cell.black {
         background-color: black;
       }
 
-      .info {
-        text-align: center;
-        color: #333;
-      }
-
-      .info h1 {
-        margin: 0 0 10px 0;
-        font-size: 24px;
-      }
-
-      .info p {
-        margin: 0;
-        font-size: 14px;
-        color: #666;
-        line-height: 1.5;
-      }
-
       .controls {
         display: flex;
-        gap: 15px;
-        margin-bottom: 20px;
-        align-items: center;
       }
 
       .btn {
@@ -84,7 +65,6 @@
         border: none;
         border-radius: 5px;
         cursor: pointer;
-        font-size: 14px;
         transition: background-color 0.3s;
       }
 
@@ -129,12 +109,6 @@
 
       .toggle-switch.active .toggle-slider {
         transform: translateX(30px);
-      }
-
-      .toggle-label {
-        font-size: 14px;
-        color: #333;
-        font-weight: bold;
       }
 
       .progress-bar-container {
@@ -188,12 +162,10 @@
       .menu-panel {
         position: fixed;
         top: 0;
-        left: -400px;
+        left: -410px;
         width: 350px;
         height: 100vh;
         background-color: rgba(255, 255, 255, 0.95);
-        backdrop-filter: blur(10px);
-        box-shadow: 2px 0 10px rgba(0, 0, 0, 0.1);
         transition: left 0.3s ease;
         padding: 70px 30px 30px 30px;
         z-index: 1050;
@@ -213,10 +185,20 @@
         gap: 20px;
         margin-bottom: 0;
       }
+
       a,
       a:active,
       a:visited {
         color: inherit;
+      }
+
+      .no-gaps .square-b {
+        gap: 0px;
+        padding: 0px;
+      }
+
+      .no-gaps .square-a {
+        gap: 0px;
       }
     </style>
   </head>
@@ -234,7 +216,7 @@
           in a 6×6 layout (Square B). This work is inspired by the works of
           Ryszard Winiarski.
           <br /><br />
-          Vincent Bruijn – 2025
+          Vincent Bruijn – 2025<br />
           <a href="https://www.y-a-v-a.org" target="_blank">y-a-v-a.org</a>
         </p>
       </div>
@@ -245,6 +227,20 @@
         <button class="btn" onclick="resetToSequential()">
           Reset to Sequential
         </button>
+        <div class="toggle-container">
+          <span class="toggle-label">Colors:</span>
+          <div class="toggle-switch" id="colorsToggle" onclick="toggleColors()">
+            <div class="toggle-slider"></div>
+          </div>
+          <span class="toggle-label" id="colorsStatus">OFF</span>
+        </div>
+        <div class="toggle-container">
+          <span class="toggle-label">Gaps:</span>
+          <div class="toggle-switch" id="gapsToggle" onclick="toggleGaps()">
+            <div class="toggle-slider"></div>
+          </div>
+          <span class="toggle-label" id="gapsStatus">ON</span>
+        </div>
         <div class="toggle-container">
           <span class="toggle-label">Keep State:</span>
           <div
@@ -271,6 +267,22 @@
       let keepState = true;
       let autoRefreshInterval = null;
       let progressInterval = null;
+      let useColors = false;
+      let cellColors = [];
+      let useGaps = true;
+
+      function generateColors() {
+        const colors = [];
+        for (let i = 0; i < 36; i++) {
+          // Generate a bright, saturated color using HSL
+          const hue = (i * 360) / 36; // Distribute evenly around color wheel
+          const saturation = 70 + (i % 3) * 10; // Vary saturation slightly
+          const lightness = 50 + (i % 2) * 15; // Vary lightness slightly
+          colors.push(`hsl(${hue}, ${saturation}%, ${lightness}%)`);
+        }
+        // Randomize the color assignment to cells
+        return colors.sort(() => Math.random() - 0.5);
+      }
 
       function createSquareA(
         blackCellCount,
@@ -328,7 +340,12 @@
           cell.className = 'grid-cell';
 
           if (blackCellIndices.includes(i)) {
-            cell.classList.add('black');
+            if (useColors) {
+              // Use the assigned color for this cell position
+              cell.style.backgroundColor = cellColors[i];
+            } else {
+              cell.classList.add('black');
+            }
             squareState[i] = true;
           }
 
@@ -341,6 +358,11 @@
       function createSquareB(randomize = false) {
         const squareB = document.getElementById('squareB');
         squareB.innerHTML = ''; // Clear existing content
+
+        // Generate new colors for each refresh if colors are enabled
+        if (useColors) {
+          cellColors = generateColors();
+        }
 
         let previousSquareState = null;
 
@@ -377,6 +399,59 @@
           createSquareB(false);
         }
         startAutoRefresh(); // Reset timer and progress bar
+      }
+
+      function toggleColors() {
+        useColors = !useColors;
+        updateColorsToggleUI();
+        if (useColors) {
+          cellColors = generateColors();
+        }
+        createSquareB(true); // Regenerate with current randomization
+        startAutoRefresh(); // Reset timer and progress bar
+      }
+
+      function updateColorsToggleUI() {
+        const toggle = document.getElementById('colorsToggle');
+        const status = document.getElementById('colorsStatus');
+
+        if (useColors) {
+          toggle.classList.add('active');
+          status.textContent = 'ON';
+        } else {
+          toggle.classList.remove('active');
+          status.textContent = 'OFF';
+        }
+      }
+
+      function toggleGaps() {
+        useGaps = !useGaps;
+        updateGapsToggleUI();
+        updateGapsCSS();
+        startAutoRefresh(); // Reset timer and progress bar
+      }
+
+      function updateGapsToggleUI() {
+        const toggle = document.getElementById('gapsToggle');
+        const status = document.getElementById('gapsStatus');
+
+        if (useGaps) {
+          toggle.classList.add('active');
+          status.textContent = 'ON';
+        } else {
+          toggle.classList.remove('active');
+          status.textContent = 'OFF';
+        }
+      }
+
+      function updateGapsCSS() {
+        const container = document.querySelector('.container');
+
+        if (useGaps) {
+          container.classList.remove('no-gaps');
+        } else {
+          container.classList.add('no-gaps');
+        }
       }
 
       function updateToggleUI() {
@@ -446,6 +521,8 @@
       // Initialize the pattern when the page loads
       document.addEventListener('DOMContentLoaded', () => {
         updateToggleUI();
+        updateColorsToggleUI();
+        updateGapsToggleUI();
         createSquareB(true);
         startAutoRefresh();
       });
