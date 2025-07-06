@@ -11,6 +11,7 @@
     ></script>
     <script>
       let map;
+      let markers = [];
 
       function initMap() {
         map = new google.maps.Map(document.getElementById('map'), {
@@ -23,7 +24,7 @@
           const antipodalLatLng = getAntipodalPoint(clickedLatLng);
 
           // Mark the clicked point
-          new google.maps.Marker({
+          const clickedMarker = new google.maps.Marker({
             position: clickedLatLng,
             map,
             title: 'Clicked Location',
@@ -33,7 +34,7 @@
           });
 
           // Mark the antipodal point
-          new google.maps.Marker({
+          const antipodalMarker = new google.maps.Marker({
             position: antipodalLatLng,
             map,
             title: 'Antipodal Point',
@@ -41,6 +42,8 @@
               url: 'http://maps.google.com/mapfiles/ms/icons/red-dot.png',
             },
           });
+
+          markers.push(clickedMarker, antipodalMarker);
         });
       }
 
@@ -50,15 +53,49 @@
           latLng.lng() > 0 ? latLng.lng() - 180 : latLng.lng() + 180;
         return { lat: antipodalLat, lng: antipodalLng };
       }
+
+      function clearMarkers() {
+        markers.forEach(marker => marker.setMap(null));
+        markers = [];
+      }
     </script>
     <style>
       #map {
         height: 100vh;
         width: 100%;
       }
+      
+      .controls {
+        position: absolute;
+        bottom: 10px;
+        left: 10px;
+        z-index: 1000;
+        background: rgba(255, 255, 255, 0.9);
+        padding: 10px;
+        border-radius: 5px;
+        box-shadow: 0 2px 10px rgba(0, 0, 0, 0.2);
+      }
+      
+      .clear-btn {
+        background: #ff4444;
+        color: white;
+        border: none;
+        padding: 8px 16px;
+        border-radius: 4px;
+        cursor: pointer;
+        font-size: 14px;
+        transition: background 0.3s;
+      }
+      
+      .clear-btn:hover {
+        background: #cc3333;
+      }
     </style>
   </head>
   <body>
+    <div class="controls">
+      <button class="clear-btn" onclick="clearMarkers()">Clear Markers</button>
+    </div>
     <div id="map"></div>
   </body>
 </html>
