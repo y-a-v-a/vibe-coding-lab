@@ -1,0 +1,200 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>NeoVasarely</title>
+    <style>
+      body,
+      html {
+        margin: 0;
+        padding: 0;
+        width: 100%;
+        height: 100%;
+        display: flex;
+        justify-content: center;
+        align-items: center;
+        background-color: #f0f0f0;
+        overflow: hidden;
+      }
+
+      #canvas-container {
+        position: relative;
+        width: 90vmin;
+        height: 90vmin;
+      }
+
+      canvas {
+        position: absolute;
+        top: 0;
+        left: 0;
+        width: 100%;
+        height: 100%;
+        box-shadow: 0 4px 12px rgba(0, 0, 0, 0.2);
+      }
+
+      .info {
+        position: fixed;
+        bottom: 10px;
+        left: 10px;
+        color: #333;
+        font-family: sans-serif;
+        font-size: 14px;
+      }
+    </style>
+  </head>
+  <body>
+    <div id="canvas-container">
+      <canvas id="art-canvas"></canvas>
+    </div>
+    <div class="info">NeoVasarely | Regenerates every 21 seconds</div>
+
+    <script>
+      // Create a canvas with the specified dimensions
+      function createCanvas(width, height) {
+        const canvas = document.getElementById('art-canvas');
+        canvas.width = width;
+        canvas.height = height;
+        return canvas;
+      }
+
+      // Conceptual algorithm for Vasarely-style generation using Gaussian distributions
+      function generateVasarelyArt(canvasSize, complexity) {
+        // Set up canvas
+        const canvas = createCanvas(canvasSize, canvasSize);
+        const ctx = canvas.getContext('2d');
+
+        // Clear canvas with white background
+        ctx.fillStyle = '#ffffff';
+        ctx.fillRect(0, 0, canvasSize, canvasSize);
+
+        // Parameters
+        const gridSize = complexity * 5; // Number of cells in grid
+        const cellSize = canvasSize / gridSize;
+
+        // Create distortion fields using multiple Gaussian functions
+        const distortionFields = [];
+        const numDistortions = 1 + Math.floor(complexity / 3);
+
+        for (let i = 0; i < numDistortions; i++) {
+          // Randomly position Gaussian centers
+          const centerX = Math.random() * canvasSize;
+          const centerY = Math.random() * canvasSize;
+
+          // Random amplitude (height) and sigma (width) of the Gaussian
+          const amplitude = (0.5 + Math.random() * 0.8) * cellSize * 3; // Increased amplitude for stronger effect
+          const sigma = canvasSize / (2 + Math.random() * 3);
+
+          distortionFields.push({
+            centerX,
+            centerY,
+            amplitude,
+            sigma,
+          });
+        }
+
+        // Function to calculate Gaussian value at a point
+        function gaussian(x, y, center, amplitude, sigma) {
+          const dx = x - center.x;
+          const dy = y - center.y;
+          const exponent = -(dx * dx + dy * dy) / (2 * sigma * sigma);
+          return amplitude * Math.exp(exponent);
+        }
+
+        // Draw the grid with distortions
+        for (let x = 0; x <= gridSize; x++) {
+          for (let y = 0; y <= gridSize; y++) {
+            // Original grid positions
+            const origX = x * cellSize;
+            const origY = y * cellSize;
+
+            // Apply distortions from all Gaussian fields
+            let distortedX = origX;
+            let distortedY = origY;
+
+            for (const field of distortionFields) {
+              const gValue = gaussian(
+                origX,
+                origY,
+                { x: field.centerX, y: field.centerY },
+                field.amplitude,
+                field.sigma
+              );
+
+              // Direction of distortion (toward or away from center)
+              const dx = origX - field.centerX;
+              const dy = origY - field.centerY;
+              const dist = Math.sqrt(dx * dx + dy * dy);
+
+              if (dist > 0) {
+                // Normalize direction vector
+                const nx = dx / dist;
+                const ny = dy / dist;
+
+                // Apply distortion in the normalized direction
+                distortedX += nx * gValue;
+                distortedY += ny * gValue;
+              }
+            }
+
+            // Store the distorted grid point
+            if (x < gridSize && y < gridSize) {
+              // Color cells based on the amount of distortion
+              const colorValue = Math.sin(distortedX / cellSize) * Math.cos(distortedY / cellSize);
+              const hue = colorValue * 60 + 180; // Blue-green palette
+
+              ctx.fillStyle = `hsl(${hue}, 80%, 50%)`;
+              ctx.beginPath();
+              ctx.rect(origX, origY, cellSize, cellSize);
+              ctx.fill();
+            }
+          }
+        }
+
+        return canvas;
+      }
+
+      // Get a random color palette (hue range)
+      function getRandomPalette() {
+        const baseHue = Math.floor(Math.random() * 360);
+        return baseHue;
+      }
+
+      // Generate new artwork with random complexity
+      function generateNewArtwork() {
+        const container = document.getElementById('canvas-container');
+        const size = Math.min(container.offsetWidth, container.offsetHeight);
+        const complexity = 16 + Math.random() * 4; // Random complexity between 4-8
+
+        // Apply a subtle fade-out effect before regenerating
+        const canvas = document.getElementById('art-canvas');
+        canvas.style.transition = 'opacity 0.5s ease';
+        canvas.style.opacity = '0.3';
+
+        setTimeout(() => {
+          generateVasarelyArt(size, complexity);
+          canvas.style.opacity = '1';
+        }, 500);
+      }
+
+      // Initialize and set up regeneration timer
+      function initialize() {
+        // Initial generation
+        generateNewArtwork();
+
+        // Regenerate every 21 seconds
+        setInterval(generateNewArtwork, 21000);
+
+        // Also regenerate on window resize
+        let resizeTimer;
+        window.addEventListener('resize', () => {
+          clearTimeout(resizeTimer);
+          resizeTimer = setTimeout(generateNewArtwork, 200);
+        });
+      }
+
+      // Start when the page loads
+      window.addEventListener('load', initialize);
+    </script>
+  </body>
+</html>
