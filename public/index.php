@@ -114,7 +114,7 @@ usort($projects, function($a, $b) {
 <?php endforeach; ?>
     </div>
     <div class="footer">
-      <p>Generated automatically • Vibe Coded Projects</p>
+      <p><a href="https://vibes.vincentbruijn.nl">vibes</a> © <?php echo date('Y'); ?> by <a href="https://www.vincentbruijn.nl">Vincent Bruijn</a> is licensed under <a href="https://creativecommons.org/licenses/by/4.0/">CC BY 4.0</a><img src="https://mirrors.creativecommons.org/presskit/icons/cc.svg" alt="" style="max-width: 1em;max-height:1em;margin-left: .2em;"><img src="https://mirrors.creativecommons.org/presskit/icons/by.svg" alt="" style="max-width: 1em;max-height:1em;margin-left: .2em;"></p>
     </div>
   </div>
 </body>
