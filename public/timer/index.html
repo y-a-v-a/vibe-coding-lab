@@ -1,0 +1,174 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Countdown Timer</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Atkinson+Hyperlegible+Mono:wght@200&display=swap" rel="stylesheet">
+  <style>
+    * {
+      margin: 0;
+      padding: 0;
+      box-sizing: border-box;
+    }
+
+    body {
+      font-family: 'Atkinson Hyperlegible Mono', monospace;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      min-height: 100vh;
+      background: #1a1a1a;
+      color: #ffffff;
+      transition: background 0.5s, color 0.5s;
+    }
+
+    body.flash {
+      background: #ffffff;
+      color: #1a1a1a;
+    }
+
+    #timer {
+      font-size: 8rem;
+      font-weight: 300;
+      letter-spacing: 0.1em;
+      margin-bottom: 3rem;
+      outline: none;
+      cursor: text;
+      user-select: text;
+    }
+
+    #timer:focus {
+      opacity: 0.8;
+    }
+
+    button {
+      font-family: 'Atkinson Hyperlegible Mono', monospace;
+      font-size: 1.5rem;
+      padding: 1rem 3rem;
+      background: transparent;
+      color: inherit;
+      border: 2px solid currentColor;
+      border-radius: 8px;
+      cursor: pointer;
+      transition: all 0.2s;
+      font-weight: 500;
+    }
+
+    button:hover {
+      background: rgba(255, 255, 255, 0.1);
+    }
+
+    button:active {
+      transform: scale(0.98);
+    }
+  </style>
+</head>
+<body>
+  <div id="timer" contenteditable="true">5:00</div>
+  <button id="control">Start</button>
+
+  <script>
+    const timer = document.getElementById('timer');
+    const button = document.getElementById('control');
+    let totalSeconds = 300;
+    let intervalId = null;
+    let flashIntervalId = null;
+    let isRunning = false;
+
+    function parseTime(text) {
+      const parts = text.trim().split(':');
+      if (parts.length !== 2) return null;
+      const mins = parseInt(parts[0], 10);
+      const secs = parseInt(parts[1], 10);
+      if (isNaN(mins) || isNaN(secs) || secs >= 60 || secs < 0) return null;
+      return mins * 60 + secs;
+    }
+
+    function formatTime(seconds) {
+      const mins = Math.floor(seconds / 60);
+      const secs = seconds % 60;
+      return `${mins}:${secs.toString().padStart(2, '0')}`;
+    }
+
+    function updateDisplay() {
+      timer.textContent = formatTime(totalSeconds);
+    }
+
+    function startFlashing() {
+      flashIntervalId = setInterval(() => {
+        document.body.classList.toggle('flash');
+      }, 500);
+    }
+
+    function stopFlashing() {
+      if (flashIntervalId) {
+        clearInterval(flashIntervalId);
+        flashIntervalId = null;
+        document.body.classList.remove('flash');
+      }
+    }
+
+    function tick() {
+      totalSeconds--;
+      updateDisplay();
+      
+      if (totalSeconds <= 0) {
+        stop();
+        startFlashing();
+      }
+    }
+
+    function start() {
+      if (totalSeconds <= 0) return;
+      stopFlashing();
+      isRunning = true;
+      button.textContent = 'Stop';
+      timer.contentEditable = 'false';
+      intervalId = setInterval(tick, 1000);
+    }
+
+    function stop() {
+      isRunning = false;
+      button.textContent = 'Start';
+      timer.contentEditable = 'true';
+      if (intervalId) {
+        clearInterval(intervalId);
+        intervalId = null;
+      }
+    }
+
+    button.addEventListener('click', () => {
+      if (isRunning) {
+        stop();
+      } else {
+        start();
+      }
+    });
+
+    timer.addEventListener('blur', () => {
+      const parsed = parseTime(timer.textContent);
+      if (parsed !== null) {
+        totalSeconds = parsed;
+      }
+      updateDisplay();
+    });
+
+    timer.addEventListener('keydown', (e) => {
+      if (e.key === 'Enter') {
+        e.preventDefault();
+        timer.blur();
+      }
+    });
+
+    document.body.addEventListener('click', (e) => {
+      if (flashIntervalId && e.target === document.body) {
+        stopFlashing();
+      }
+    });
+  </script>
+</body>
+</html>
