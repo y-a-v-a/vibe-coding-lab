@@ -1,0 +1,112 @@
+<!DOCTYPE html>
+<html lang="nl">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Klok</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+        
+        body {
+            background: #1a1a1a;
+            color: #ffffff;
+            font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            min-height: 100vh;
+            padding: 20px;
+        }
+        
+        #time {
+            font-size: clamp(1.5rem, 5vw, 3rem);
+            text-align: center;
+            line-height: 1.4;
+        }
+    </style>
+</head>
+<body>
+    <div id="time"></div>
+    
+    <script>
+        const hourNames = [
+            'twaalf', 'één', 'twee', 'drie', 'vier', 'vijf',
+            'zes', 'zeven', 'acht', 'negen', 'tien', 'elf'
+        ];
+        
+        function roundToFive(minutes) {
+            return Math.round(minutes / 5) * 5;
+        }
+        
+        function getDutchTime(hours, minutes) {
+            const rounded = roundToFive(minutes);
+            const currentHour = hours % 12;
+            const nextHour = (hours + 1) % 12;
+            
+            if (rounded === 0) {
+                return `Het is ${hourNames[currentHour]} uur`;
+            }
+            
+            if (rounded === 5) {
+                return `Het is vijf over ${hourNames[currentHour]}`;
+            }
+            
+            if (rounded === 10) {
+                return `Het is tien over ${hourNames[currentHour]}`;
+            }
+            
+            if (rounded === 15) {
+                return `Het is kwart over ${hourNames[currentHour]}`;
+            }
+            
+            if (rounded === 20) {
+                return `Het is tien voor half ${hourNames[nextHour]}`;
+            }
+            
+            if (rounded === 25) {
+                return `Het is vijf voor half ${hourNames[nextHour]}`;
+            }
+            
+            if (rounded === 30) {
+                return `Het is half ${hourNames[nextHour]}`;
+            }
+            
+            if (rounded === 35) {
+                return `Het is vijf over half ${hourNames[nextHour]}`;
+            }
+            
+            if (rounded === 40) {
+                return `Het is tien over half ${hourNames[nextHour]}`;
+            }
+            
+            if (rounded === 45) {
+                return `Het is kwart voor ${hourNames[nextHour]}`;
+            }
+            
+            if (rounded === 50) {
+                return `Het is tien voor ${hourNames[nextHour]}`;
+            }
+            
+            if (rounded === 55) {
+                return `Het is vijf voor ${hourNames[nextHour]}`;
+            }
+            
+            // rounded === 60
+            return `Het is ${hourNames[nextHour]} uur`;
+        }
+        
+        function updateClock() {
+            const now = new Date();
+            const timeText = getDutchTime(now.getHours(), now.getMinutes());
+            document.getElementById('time').textContent = timeText;
+        }
+        
+        updateClock();
+        setInterval(updateClock, 1000);
+    </script>
+</body>
+</html>
