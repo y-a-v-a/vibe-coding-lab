@@ -1,0 +1,259 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Web Synth</title>
+  <link rel="stylesheet" href="styles.css">
+</head>
+<body>
+  <header>
+    <h1>WEB SYNTH</h1>
+    <div id="status">
+      <span id="audio-status" class="status-off">AUDIO OFF</span>
+      <button id="power-btn" class="power-btn">POWER</button>
+    </div>
+  </header>
+
+  <main>
+    <!-- Oscillator Section -->
+    <section class="module" id="osc-section">
+      <h2>OSCILLATORS</h2>
+      <div class="module-content">
+        <div class="osc-group">
+          <h3>OSC 1</h3>
+          <div class="wave-select">
+            <button class="wave-btn active" data-osc="1" data-wave="sawtooth">SAW</button>
+            <button class="wave-btn" data-osc="1" data-wave="square">SQR</button>
+            <button class="wave-btn" data-osc="1" data-wave="sine">SIN</button>
+            <button class="wave-btn" data-osc="1" data-wave="triangle">TRI</button>
+          </div>
+          <div class="knob-row">
+            <div class="control">
+              <div class="knob" data-param="osc1-detune" data-min="-100" data-max="100" data-value="0"></div>
+              <label>DETUNE</label>
+            </div>
+            <div class="control">
+              <div class="knob" data-param="osc1-gain" data-min="0" data-max="100" data-value="80"></div>
+              <label>LEVEL</label>
+            </div>
+            <div class="control">
+              <div class="knob" data-param="osc1-octave" data-min="-2" data-max="2" data-value="0" data-step="1"></div>
+              <label>OCTAVE</label>
+            </div>
+          </div>
+        </div>
+        <div class="osc-group">
+          <h3>OSC 2</h3>
+          <div class="wave-select">
+            <button class="wave-btn active" data-osc="2" data-wave="square">SQR</button>
+            <button class="wave-btn" data-osc="2" data-wave="sawtooth">SAW</button>
+            <button class="wave-btn" data-osc="2" data-wave="sine">SIN</button>
+            <button class="wave-btn" data-osc="2" data-wave="triangle">TRI</button>
+          </div>
+          <div class="knob-row">
+            <div class="control">
+              <div class="knob" data-param="osc2-detune" data-min="-100" data-max="100" data-value="7"></div>
+              <label>DETUNE</label>
+            </div>
+            <div class="control">
+              <div class="knob" data-param="osc2-gain" data-min="0" data-max="100" data-value="60"></div>
+              <label>LEVEL</label>
+            </div>
+            <div class="control">
+              <div class="knob" data-param="osc2-octave" data-min="-2" data-max="2" data-value="0" data-step="1"></div>
+              <label>OCTAVE</label>
+            </div>
+          </div>
+        </div>
+        <div class="osc-group">
+          <h3>NOISE</h3>
+          <div class="knob-row">
+            <div class="control">
+              <div class="knob" data-param="noise-gain" data-min="0" data-max="100" data-value="0"></div>
+              <label>LEVEL</label>
+            </div>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- Filter Section -->
+    <section class="module" id="filter-section">
+      <h2>FILTER</h2>
+      <div class="module-content">
+        <div class="wave-select">
+          <button class="filter-btn active" data-filter="lowpass">LP</button>
+          <button class="filter-btn" data-filter="highpass">HP</button>
+          <button class="filter-btn" data-filter="bandpass">BP</button>
+          <button class="filter-btn" data-filter="notch">NOTCH</button>
+        </div>
+        <div class="knob-row">
+          <div class="control">
+            <div class="knob" data-param="filter-cutoff" data-min="20" data-max="20000" data-value="8000" data-curve="log"></div>
+            <label>CUTOFF</label>
+          </div>
+          <div class="control">
+            <div class="knob" data-param="filter-resonance" data-min="0" data-max="100" data-value="0"></div>
+            <label>RESONANCE</label>
+          </div>
+          <div class="control">
+            <div class="knob" data-param="filter-env" data-min="0" data-max="100" data-value="30"></div>
+            <label>ENV AMT</label>
+          </div>
+        </div>
+        <h3>FILTER ENVELOPE</h3>
+        <div class="slider-row">
+          <div class="control">
+            <input type="range" class="slider" data-param="filter-attack" min="0" max="5000" value="10">
+            <label>A</label>
+          </div>
+          <div class="control">
+            <input type="range" class="slider" data-param="filter-decay" min="0" max="5000" value="300">
+            <label>D</label>
+          </div>
+          <div class="control">
+            <input type="range" class="slider" data-param="filter-sustain" min="0" max="100" value="40">
+            <label>S</label>
+          </div>
+          <div class="control">
+            <input type="range" class="slider" data-param="filter-release" min="0" max="5000" value="200">
+            <label>R</label>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- Amp Envelope -->
+    <section class="module" id="amp-section">
+      <h2>AMP ENVELOPE</h2>
+      <div class="module-content">
+        <div class="slider-row">
+          <div class="control">
+            <input type="range" class="slider" data-param="amp-attack" min="0" max="5000" value="10">
+            <label>A</label>
+          </div>
+          <div class="control">
+            <input type="range" class="slider" data-param="amp-decay" min="0" max="5000" value="200">
+            <label>D</label>
+          </div>
+          <div class="control">
+            <input type="range" class="slider" data-param="amp-sustain" min="0" max="100" value="70">
+            <label>S</label>
+          </div>
+          <div class="control">
+            <input type="range" class="slider" data-param="amp-release" min="0" max="5000" value="300">
+            <label>R</label>
+          </div>
+        </div>
+        <div class="knob-row">
+          <div class="control">
+            <div class="knob" data-param="master-gain" data-min="0" data-max="100" data-value="70"></div>
+            <label>MASTER</label>
+          </div>
+          <div class="control">
+            <div class="knob" data-param="glide" data-min="0" data-max="500" data-value="0"></div>
+            <label>GLIDE</label>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- Effects Section -->
+    <section class="module" id="fx-section">
+      <h2>EFFECTS</h2>
+      <div class="module-content">
+        <div class="fx-group">
+          <h3>DELAY</h3>
+          <div class="knob-row">
+            <div class="control">
+              <div class="knob" data-param="delay-time" data-min="0" data-max="1000" data-value="300"></div>
+              <label>TIME</label>
+            </div>
+            <div class="control">
+              <div class="knob" data-param="delay-feedback" data-min="0" data-max="95" data-value="40"></div>
+              <label>FDBK</label>
+            </div>
+            <div class="control">
+              <div class="knob" data-param="delay-mix" data-min="0" data-max="100" data-value="0"></div>
+              <label>MIX</label>
+            </div>
+          </div>
+        </div>
+        <div class="fx-group">
+          <h3>REVERB</h3>
+          <div class="knob-row">
+            <div class="control">
+              <div class="knob" data-param="reverb-size" data-min="0" data-max="100" data-value="50"></div>
+              <label>SIZE</label>
+            </div>
+            <div class="control">
+              <div class="knob" data-param="reverb-damping" data-min="0" data-max="100" data-value="50"></div>
+              <label>DAMP</label>
+            </div>
+            <div class="control">
+              <div class="knob" data-param="reverb-mix" data-min="0" data-max="100" data-value="0"></div>
+              <label>MIX</label>
+            </div>
+          </div>
+        </div>
+        <div class="fx-group">
+          <h3>DISTORTION</h3>
+          <div class="knob-row">
+            <div class="control">
+              <div class="knob" data-param="dist-amount" data-min="0" data-max="100" data-value="0"></div>
+              <label>DRIVE</label>
+            </div>
+            <div class="control">
+              <div class="knob" data-param="dist-mix" data-min="0" data-max="100" data-value="0"></div>
+              <label>MIX</label>
+            </div>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- LFO Section -->
+    <section class="module" id="lfo-section">
+      <h2>LFO</h2>
+      <div class="module-content">
+        <div class="wave-select">
+          <button class="lfo-wave-btn active" data-wave="sine">SIN</button>
+          <button class="lfo-wave-btn" data-wave="triangle">TRI</button>
+          <button class="lfo-wave-btn" data-wave="square">SQR</button>
+          <button class="lfo-wave-btn" data-wave="sawtooth">SAW</button>
+        </div>
+        <div class="knob-row">
+          <div class="control">
+            <div class="knob" data-param="lfo-rate" data-min="0.1" data-max="30" data-value="4" data-curve="log"></div>
+            <label>RATE</label>
+          </div>
+          <div class="control">
+            <div class="knob" data-param="lfo-depth" data-min="0" data-max="100" data-value="0"></div>
+            <label>DEPTH</label>
+          </div>
+        </div>
+        <div class="wave-select">
+          <label class="target-label">TARGET:</label>
+          <button class="lfo-target-btn active" data-target="filter">FILTER</button>
+          <button class="lfo-target-btn" data-target="pitch">PITCH</button>
+          <button class="lfo-target-btn" data-target="amp">AMP</button>
+        </div>
+      </div>
+    </section>
+
+    <!-- Keyboard -->
+    <section class="module keyboard-module" id="keyboard-section">
+      <div id="keyboard"></div>
+      <div class="keyboard-info">
+        <span>Keys: A-L (white) W,E,T,Y,U,O,P (black) | Z/X: octave down/up</span>
+      </div>
+    </section>
+  </main>
+
+  <script src="audio-engine.js"></script>
+  <script src="ui-controls.js"></script>
+  <script src="keyboard.js"></script>
+  <script src="app.js"></script>
+</body>
+</html>
