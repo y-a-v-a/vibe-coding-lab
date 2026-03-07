@@ -32,8 +32,6 @@ class Keyboard {
       'p': 15,  // D#+1
     };
 
-    this.noteNames = ['C', 'C#', 'D', 'D#', 'E', 'F', 'F#', 'G', 'G#', 'A', 'A#', 'B'];
-
     this._buildKeys();
     this._bindKeyboard();
     this._bindMouse();
@@ -107,14 +105,14 @@ class Keyboard {
       if (e.repeat) return;
       const key = e.key.toLowerCase();
 
-      // Octave change
-      if (key === 'z') {
-        this.octave = Math.max(1, this.octave - 1);
-        this._buildKeys();
-        return;
-      }
-      if (key === 'x') {
-        this.octave = Math.min(7, this.octave + 1);
+      // Octave change — release all held notes first to prevent stuck notes
+      if (key === 'z' || key === 'x') {
+        this.activeKeys.forEach(note => {
+          this._deactivateKey(note);
+          if (this.onNoteOff) this.onNoteOff(note);
+        });
+        this.activeKeys.clear();
+        this.octave = key === 'z' ? Math.max(1, this.octave - 1) : Math.min(7, this.octave + 1);
         this._buildKeys();
         return;
       }

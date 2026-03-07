@@ -141,7 +141,7 @@ class AudioEngine {
     const baseCutoff = this.params.filterCutoff;
     const envAmount = this.params.filterEnvAmount;
     const filterPeak = Math.min(baseCutoff + envAmount * 18000, 20000);
-    const fSustain = baseCutoff + envAmount * this.params.filterSustain * 18000;
+    const fSustain = Math.min(baseCutoff + envAmount * this.params.filterSustain * 18000, 20000);
 
     voice.filter.frequency.setValueAtTime(baseCutoff, now);
     voice.filter.frequency.linearRampToValueAtTime(filterPeak, now + this.params.filterAttack);
@@ -198,11 +198,26 @@ class AudioEngine {
     voice.filter.frequency.setValueAtTime(voice.filter.frequency.value, now);
     voice.filter.frequency.linearRampToValueAtTime(this.params.filterCutoff, now + filterRelease);
 
-    // Schedule cleanup
+    // Schedule stop and disconnect all nodes after release completes
     const stopTime = now + Math.max(release, filterRelease) + 0.05;
     voice.osc1.stop(stopTime);
     voice.osc2.stop(stopTime);
     voice.noise.stop(stopTime);
+
+    // Disconnect all nodes after oscillators stop to prevent leaks
+    const cleanupMs = (Math.max(release, filterRelease) + 0.1) * 1000;
+    setTimeout(() => {
+      voice.osc1.disconnect();
+      voice.osc2.disconnect();
+      voice.noise.disconnect();
+      voice.osc1Gain.disconnect();
+      voice.osc2Gain.disconnect();
+      voice.noiseGain.disconnect();
+      voice.filter.disconnect();
+      voice.ampGain.disconnect();
+      if (voice._lfoNode) voice._lfoNode.disconnect();
+      if (voice._lfoNode2) voice._lfoNode2.disconnect();
+    }, cleanupMs);
 
     this.voices.delete(note);
   }
@@ -266,7 +281,9 @@ class AudioEngine {
         break;
       case 'reverbSize':
       case 'reverbDamping':
-        this._updateReverbIR();
+        // Debounce IR regeneration — creating a multi-second buffer is expensive
+        clearTimeout(this._reverbDebounce);
+        this._reverbDebounce = setTimeout(() => this._updateReverbIR(), 100);
         break;
       case 'distAmount':
         if (this.distNode) this.distNode.curve = this._makeDistCurve(value);
@@ -438,7 +455,13 @@ class AudioEngine {
   // --- Cleanup ---
 
   destroy() {
-    this.voices.forEach((_, note) => this.noteOff(note));
+    // Collect notes first — noteOff modifies the Map during iteration
+    const notes = [...this.voices.keys()];
+    notes.forEach(note => this.noteOff(note));
+    if (this.lfo) {
+      this.lfo.stop();
+      this.lfo.disconnect();
+    }
     if (this.ctx) {
       this.ctx.close();
       this.ctx = null;
