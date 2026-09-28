@@ -1,0 +1,164 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Malcolm Hughes - Stacked Rectangles</title>
+    <style>
+        body {
+            margin: 0;
+            padding: 20px;
+            background-color: #f5f5f5;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            min-height: 100vh;
+            font-family: Arial, sans-serif;
+        }
+        
+        .container {
+            text-align: center;
+        }
+        
+        canvas {
+            border: 1px solid #ddd;
+            background-color: white;
+            box-shadow: 0 4px 8px rgba(0,0,0,0.1);
+        }
+        
+        .info {
+            margin-top: 20px;
+            color: #666;
+            font-size: 14px;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <canvas id="artCanvas" width="600" height="600"></canvas>
+        <div class="info">
+            Recreation of Malcolm Hughes' systematic rectangle progression<br>
+            Odd numbers: vertical rectangles | Even numbers: horizontal rectangles
+        </div>
+    </div>
+
+    <script>
+        const canvas = document.getElementById('artCanvas');
+        const ctx = canvas.getContext('2d');
+        
+        // Canvas dimensions
+        const canvasWidth = canvas.width;
+        const canvasHeight = canvas.height;
+        const centerX = canvasWidth / 2;
+        const centerY = canvasHeight / 2;
+        
+        // Maximum dimensions for rectangles
+        const maxWidth = 400;
+        const maxHeight = 400;
+        
+        function getColor(index) {
+            // Color progression from blue to purple to red
+            const colors = [
+                '#0066CC', // Blue
+                '#3366CC', // Blue-purple
+                '#6666CC', // Purple-blue
+                '#9966CC', // Purple
+                '#CC66CC', // Purple-red
+                '#CC6699', // Red-purple
+                '#CC3366'  // Red
+            ];
+            return colors[index - 1] || colors[colors.length - 1];
+        }
+        
+        function getPosition(index, rectWidth, rectHeight) {
+            const isOdd = index % 2 === 1;
+            
+            if (isOdd) {
+                // Vertical rectangles: 1 center, 3 right, 5 left, 7 right
+                const oddPosition = Math.floor((index - 1) / 2); // 0, 1, 2, 3 for indices 1,3,5,7
+                let x;
+                
+                if (index === 1) {
+                    x = centerX - rectWidth / 2; // Center
+                } else if (oddPosition % 2 === 1) {
+                    // Right side (3, 7)
+                    const rightOffset = Math.ceil(oddPosition / 2) * 50; // 50, 100
+                    x = centerX + rightOffset;
+                } else {
+                    // Left side (5)
+                    const leftOffset = (oddPosition / 2) * 50; // 50
+                    x = centerX - leftOffset - rectWidth;
+                }
+                
+                const y = centerY - rectHeight / 2;
+                return { x, y };
+                
+            } else {
+                // Even horizontal rectangles: 2 center, 4 below, 6 above, 8 below
+                const evenPosition = (index - 2) / 2; // 0, 1, 2 for indices 2,4,6
+                let y;
+                
+                if (index === 2) {
+                    y = centerY - rectHeight / 2; // Center
+                } else if (evenPosition % 2 === 1) {
+                    // Below (4)
+                    const belowOffset = Math.ceil(evenPosition / 2) * 60; // 60
+                    y = centerY + belowOffset;
+                } else {
+                    // Above (6)
+                    const aboveOffset = (evenPosition / 2) * 60; // 60
+                    y = centerY - aboveOffset - rectHeight;
+                }
+                
+                const x = centerX - rectWidth / 2;
+                return { x, y };
+            }
+        }
+        
+        function drawRectangles() {
+            // Clear canvas
+            ctx.clearRect(0, 0, canvasWidth, canvasHeight);
+            
+            // Draw rectangles from 7 down to 1 (so 1 appears on top)
+            for (let i = 7; i >= 1; i--) {
+                const isOdd = i % 2 === 1;
+                const color = getColor(i);
+                
+                let rectWidth, rectHeight;
+                
+                if (isOdd) {
+                    // Odd: vertical rectangle
+                    rectWidth = i * 10;
+                    rectHeight = maxHeight;
+                } else {
+                    // Even: horizontal rectangle
+                    rectWidth = maxWidth;
+                    rectHeight = i * 10;
+                }
+                
+                // Get position based on alternating side logic
+                const { x, y } = getPosition(i, rectWidth, rectHeight);
+                
+                // Set fill color
+                ctx.fillStyle = color;
+                
+                // Draw rectangle
+                ctx.fillRect(x, y, rectWidth, rectHeight);
+                
+                // Optional: Add a subtle stroke for definition
+                ctx.strokeStyle = 'rgba(0,0,0,0.1)';
+                ctx.lineWidth = 1;
+                ctx.strokeRect(x, y, rectWidth, rectHeight);
+            }
+        }
+        
+        // Draw the artwork
+        drawRectangles();
+        
+        // Optional: Redraw on window resize to keep centered
+        window.addEventListener('resize', () => {
+            drawRectangles();
+        });
+    </script>
+</body>
+</html>
