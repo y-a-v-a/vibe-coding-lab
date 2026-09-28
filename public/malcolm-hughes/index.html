@@ -8,6 +8,7 @@
         body {
             margin: 0;
             padding: 20px;
+            box-sizing: border-box;
             background-color: #f5f5f5;
             display: flex;
             justify-content: center;
@@ -21,6 +22,9 @@
         }
         
         canvas {
+            display: block;
+            margin: 0 auto;
+            cursor: pointer;
             border: 1px solid #ddd;
             background-color: white;
             box-shadow: 0 4px 8px rgba(0,0,0,0.1);
@@ -30,15 +34,26 @@
             margin-top: 20px;
             color: #666;
             font-size: 14px;
+            line-height: 1.6;
+        }
+
+        .info.hidden {
+            visibility: hidden;
+        }
+
+        .sequence {
+            color: #999;
+            font-size: 12px;
         }
     </style>
 </head>
 <body>
     <div class="container">
         <canvas id="artCanvas" width="600" height="600"></canvas>
-        <div class="info">
+        <div class="info" id="info">
             Recreation of Malcolm Hughes' systematic rectangle progression<br>
-            Odd numbers: vertical rectangles | Even numbers: horizontal rectangles
+            Odd numbers: vertical rectangles | Even numbers: horizontal rectangles<br>
+            <span class="sequence" id="sequence"></span>
         </div>
     </div>
 
@@ -46,15 +61,20 @@
         const canvas = document.getElementById('artCanvas');
         const ctx = canvas.getContext('2d');
         
-        // Canvas dimensions
-        const canvasWidth = canvas.width;
-        const canvasHeight = canvas.height;
+        // Logical canvas dimensions; the canvas is scaled to fit the viewport
+        const canvasWidth = 600;
+        const canvasHeight = 600;
         const centerX = canvasWidth / 2;
         const centerY = canvasHeight / 2;
         
         // Maximum dimensions for rectangles
         const maxWidth = 400;
         const maxHeight = 400;
+
+        // order[n - 1] is the rank of rectangle n: it sets its color and
+        // stacking (rank 1 is blue and on top). Geometry always follows n.
+        const original = [1, 2, 3, 4, 5, 6, 7];
+        let order = [...original];
         
         function getColor(index) {
             // Color progression from blue to purple to red
@@ -119,10 +139,11 @@
             // Clear canvas
             ctx.clearRect(0, 0, canvasWidth, canvasHeight);
             
-            // Draw rectangles from 7 down to 1 (so 1 appears on top)
-            for (let i = 7; i >= 1; i--) {
+            // Draw from the highest rank down (so rank 1 appears on top)
+            const bars = [...original].sort((a, b) => order[b - 1] - order[a - 1]);
+            for (const i of bars) {
                 const isOdd = i % 2 === 1;
-                const color = getColor(i);
+                const color = getColor(order[i - 1]);
                 
                 let rectWidth, rectHeight;
                 
@@ -152,13 +173,53 @@
             }
         }
         
-        // Draw the artwork
-        drawRectangles();
-        
-        // Optional: Redraw on window resize to keep centered
-        window.addEventListener('resize', () => {
+        function updateSequence() {
+            document.getElementById('sequence').textContent =
+                `Sequence: ${order.join(' ')} · R or click to shuffle · 0 original · H hide`;
+        }
+
+        function shuffle() {
+            const current = order.join();
+            do {
+                for (let i = order.length - 1; i > 0; i--) {
+                    const j = Math.floor(Math.random() * (i + 1));
+                    [order[i], order[j]] = [order[j], order[i]];
+                }
+            } while (order.join() === current);
+            updateSequence();
             drawRectangles();
+        }
+
+        function resize() {
+            const size = Math.max(200, Math.min(window.innerWidth - 40, window.innerHeight - 140));
+            const dpr = window.devicePixelRatio || 1;
+            canvas.style.width = size + 'px';
+            canvas.style.height = size + 'px';
+            canvas.width = Math.round(size * dpr);
+            canvas.height = Math.round(size * dpr);
+            const scale = canvas.width / canvasWidth;
+            ctx.setTransform(scale, 0, 0, scale, 0, 0);
+            drawRectangles();
+        }
+
+        document.addEventListener('keydown', (e) => {
+            if (e.key === 'r' || e.key === 'R') {
+                shuffle();
+            } else if (e.key === '0') {
+                order = [...original];
+                updateSequence();
+                drawRectangles();
+            } else if (e.key === 'h' || e.key === 'H') {
+                document.getElementById('info').classList.toggle('hidden');
+            }
         });
+
+        canvas.addEventListener('click', shuffle);
+
+        // Draw the artwork
+        updateSequence();
+        resize();
+        window.addEventListener('resize', resize);
     </script>
 </body>
 </html>

@@ -1,6 +1,6 @@
 # Malcolm Hughes: Stacked Rectangles
 
-A static composition of seven overlapping rectangles whose size, orientation, position, and color all follow from a single number sequence. Odd numbers become vertical bars, even numbers horizontal bars, and each step shifts color from blue toward red.
+A composition of seven overlapping rectangles whose size, orientation, position, and color all follow from a single number sequence. Odd numbers become vertical bars, even numbers horizontal bars, and each step shifts color from blue toward red. The sequence can be permuted to explore variations within the same system.
 
 ## Artistic inspiration
 
@@ -22,13 +22,22 @@ This piece is a recreation in that spirit rather than a copy of a specific work:
 
 The bar's thickness is `n × 10` pixels. Vertical bars alternate right and left of center, and horizontal bars alternate below and above it. The rectangles are painted from 7 down to 1, so the smallest, bluest bar sits on top.
 
-## Usage
+### Permutations
 
-Open `index.html` in a browser. The composition is static; there are no controls.
+Shuffling keeps the geometry fixed, since size and position always follow `n`, but assigns each rectangle a new rank. The rank decides its color in the blue-to-red progression and its place in the stack, with rank 1 blue and on top. The current permutation is shown below the canvas, read as the ranks of rectangles 1 to 7. Permuting a fixed set of elements was a recurring method in Systems art.
+
+## Controls
+
+| Input | Action |
+|---|---|
+| R / click or tap the canvas | Shuffle to a new permutation |
+| 0 | Return to the original sequence 1–7 |
+| H | Hide or show the caption |
 
 ## Technical details
 
-- A single 600 × 600 HTML5 Canvas drawn with the 2D context
+- A single HTML5 Canvas drawn with the 2D context in a 600 × 600 logical coordinate space
+- The canvas scales to fit the viewport and renders at the device pixel ratio for sharp edges on high-density screens
 - Vanilla JavaScript with no dependencies
 - Each rectangle gets a faint `rgba(0,0,0,0.1)` outline for definition
 
