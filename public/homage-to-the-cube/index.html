@@ -1,0 +1,328 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Homage to the Cube (after Josef Albers)</title>
+<style>
+  @import url('https://fonts.googleapis.com/css2?family=DM+Mono:wght@300;400&display=swap');
+
+  * { margin: 0; padding: 0; box-sizing: border-box; }
+
+  body {
+    background: #0f0f1a;
+    height: 100vh;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    font-family: 'DM Mono', monospace;
+    overflow: hidden;
+    cursor: grab;
+    user-select: none;
+  }
+
+  body.dragging { cursor: grabbing; }
+
+  .scene {
+    width: min(75vmin, 550px);
+    height: min(75vmin, 550px);
+    perspective: 1200px;
+    perspective-origin: 50% 45%;
+  }
+
+  .rig {
+    width: 100%;
+    height: 100%;
+    position: relative;
+    transform-style: preserve-3d;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+  }
+
+  .cube {
+    position: absolute;
+    transform-style: preserve-3d;
+  }
+
+  .face {
+    position: absolute;
+    backface-visibility: visible;
+    border: 1px solid rgba(255,255,255,0.03);
+  }
+
+  .face-front  { transform: rotateY(0deg)   translateZ(var(--half)); }
+  .face-back   { transform: rotateY(180deg) translateZ(var(--half)); }
+  .face-left   { transform: rotateY(-90deg) translateZ(var(--half)); }
+  .face-right  { transform: rotateY(90deg)  translateZ(var(--half)); }
+  .face-top    { transform: rotateX(90deg)  translateZ(var(--half)); }
+  .face-bottom { transform: rotateX(-90deg) translateZ(var(--half)); }
+
+  .title-area {
+    position: fixed;
+    bottom: 3vh;
+    text-align: center;
+    color: rgba(255,255,255,0.25);
+    font-weight: 300;
+    font-size: clamp(10px, 1.4vmin, 14px);
+    letter-spacing: 0.15em;
+    text-transform: uppercase;
+    line-height: 1.8;
+    transition: color 0.6s ease;
+  }
+
+  .title-area:hover { color: rgba(255,255,255,0.5); }
+
+  .study-number {
+    font-size: clamp(9px, 1.2vmin, 12px);
+    opacity: 0.6;
+    margin-bottom: 4px;
+  }
+
+  .palette-bar {
+    position: fixed;
+    top: 3vh;
+    display: flex;
+    gap: 8px;
+    align-items: center;
+  }
+
+  .swatch {
+    width: 12px;
+    height: 12px;
+    border-radius: 50%;
+    transition: background-color 1.8s ease, transform 0.3s ease;
+    border: 1px solid rgba(255,255,255,0.08);
+  }
+
+  .swatch:hover { transform: scale(1.5); }
+
+  .palette-label {
+    color: rgba(255,255,255,0.15);
+    font-size: 10px;
+    font-weight: 300;
+    letter-spacing: 0.2em;
+    text-transform: uppercase;
+    margin-left: 8px;
+    transition: color 0.6s ease;
+  }
+
+  @keyframes fadeIn {
+    from { opacity: 0; }
+    to { opacity: 1; }
+  }
+
+  .scene { opacity: 0; animation: fadeIn 1.5s ease 0.2s forwards; }
+  .title-area { opacity: 0; animation: fadeIn 1.5s ease 1s forwards; }
+  .palette-bar { opacity: 0; animation: fadeIn 1.5s ease 1.2s forwards; }
+</style>
+</head>
+<body>
+
+<div class="palette-bar">
+  <div class="swatch" id="sw0"></div>
+  <div class="swatch" id="sw1"></div>
+  <div class="swatch" id="sw2"></div>
+  <div class="swatch" id="sw3"></div>
+  <span class="palette-label" id="palette-name"></span>
+</div>
+
+<div class="scene">
+  <div class="rig" id="rig"></div>
+</div>
+
+<div class="title-area">
+  <div class="study-number" id="study-num">Study I</div>
+  Homage to the Cube<br>
+  <span style="opacity:0.5">after Josef Albers — drag to rotate, click to shift</span>
+</div>
+
+<script>
+const palettes = [
+  { name: 'Dusk',        bg: '#0f0f1a', colors: ['#1a1a2e','#4a3f6b','#7b6fa0','#b8a9d4'], opacities: [0.85, 0.5, 0.35, 0.25] },
+  { name: 'Ochre Field', bg: '#1c1810', colors: ['#3d2b1f','#7a5c3e','#c49a6c','#e8d5b7'], opacities: [0.85, 0.5, 0.35, 0.25] },
+  { name: 'Viridian',    bg: '#0a1612', colors: ['#1b3a2d','#2d6b4f','#5aaa7a','#a8dfc1'], opacities: [0.85, 0.5, 0.35, 0.25] },
+  { name: 'Cadmium',     bg: '#1a0c0c', colors: ['#4a1515','#8b2c2c','#c75050','#e89898'], opacities: [0.85, 0.5, 0.35, 0.25] },
+  { name: 'Cerulean',    bg: '#0b1118', colors: ['#162338','#2a4a72','#4a80b8','#8cb8e0'], opacities: [0.85, 0.5, 0.35, 0.25] },
+  { name: 'Sienna',      bg: '#18120e', colors: ['#3e2510','#7a4a22','#b87333','#daa06d'], opacities: [0.85, 0.5, 0.35, 0.25] },
+  { name: 'Ash',         bg: '#111111', colors: ['#2a2a2a','#4f4f4f','#7a7a7a','#ababab'], opacities: [0.85, 0.5, 0.35, 0.25] },
+  { name: 'Saffron',     bg: '#18150a', colors: ['#3a3310','#6b5d1f','#a89230','#d4c76a'], opacities: [0.85, 0.5, 0.35, 0.25] },
+  { name: 'Mauve',       bg: '#150f18', colors: ['#2e1f38','#5a3d6e','#8a60a8','#bfa0d8'], opacities: [0.85, 0.5, 0.35, 0.25] },
+  { name: 'Terre Verte', bg: '#0e1510', colors: ['#1e2e20','#3a5a3e','#5a8a60','#90bb96'], opacities: [0.85, 0.5, 0.35, 0.25] },
+  { name: 'Rose',        bg: '#180e12', colors: ['#381e28','#6e3d50','#a86080','#d8a0b8'], opacities: [0.85, 0.5, 0.35, 0.25] },
+  { name: 'Ivory Black', bg: '#0e0e0c', colors: ['#1e1e1a','#3e3e36','#6a6a5e','#9e9e8e'], opacities: [0.85, 0.5, 0.35, 0.25] },
+];
+
+const cubeSizes = [1.0, 0.74, 0.52, 0.34];
+const rig = document.getElementById('rig');
+const romanNumerals = ['I','II','III','IV','V','VI','VII','VIII','IX','X','XI','XII'];
+let current = 0;
+
+// Build cubes
+const faceNames = ['front','back','left','right','top','bottom'];
+const cubeEls = [];
+
+function getBaseSize() {
+  return Math.min(window.innerWidth, window.innerHeight) * 0.55;
+}
+
+cubeSizes.forEach((scale, i) => {
+  const cube = document.createElement('div');
+  cube.className = 'cube';
+  cube.dataset.index = i;
+
+  faceNames.forEach(name => {
+    const face = document.createElement('div');
+    face.className = `face face-${name}`;
+    cube.appendChild(face);
+  });
+
+  rig.appendChild(cube);
+  cubeEls.push(cube);
+});
+
+function sizeCubes() {
+  const base = getBaseSize();
+  cubeEls.forEach((cube, i) => {
+    const size = base * cubeSizes[i];
+    const half = size / 2;
+    cube.style.width = size + 'px';
+    cube.style.height = size + 'px';
+    cube.style.setProperty('--half', half + 'px');
+
+    cube.querySelectorAll('.face').forEach(f => {
+      f.style.width = size + 'px';
+      f.style.height = size + 'px';
+      f.style.marginLeft = -half + 'px';
+      f.style.marginTop = -half + 'px';
+    });
+  });
+}
+
+function hexToRgb(hex) {
+  const r = parseInt(hex.slice(1,3), 16);
+  const g = parseInt(hex.slice(3,5), 16);
+  const b = parseInt(hex.slice(5,7), 16);
+  return `${r},${g},${b}`;
+}
+
+function applyPalette(index) {
+  const p = palettes[index];
+  document.body.style.background = p.bg;
+
+  cubeEls.forEach((cube, i) => {
+    const rgb = hexToRgb(p.colors[i]);
+    const alpha = p.opacities[i];
+    cube.querySelectorAll('.face').forEach(f => {
+      f.style.transition = 'background-color 1.8s ease';
+      f.style.backgroundColor = `rgba(${rgb}, ${alpha})`;
+    });
+  });
+
+  p.colors.forEach((c, i) => {
+    document.getElementById('sw' + i).style.background = c;
+  });
+  document.getElementById('palette-name').textContent = p.name;
+  document.getElementById('study-num').textContent = `Study ${romanNumerals[index]}`;
+}
+
+sizeCubes();
+applyPalette(0);
+window.addEventListener('resize', sizeCubes);
+
+// Rotation state
+let rotX = -25;
+let rotY = 35;
+let autoRotate = true;
+let velY = 0.15;
+let isDragging = false;
+let dragStartX, dragStartY, dragStartRotX, dragStartRotY;
+let lastMoveTime = 0;
+let lastClickTime = 0;
+
+function onPointerDown(e) {
+  isDragging = true;
+  autoRotate = false;
+  dragStartX = e.clientX || e.touches?.[0]?.clientX;
+  dragStartY = e.clientY || e.touches?.[0]?.clientY;
+  dragStartRotX = rotX;
+  dragStartRotY = rotY;
+  document.body.classList.add('dragging');
+  lastMoveTime = Date.now();
+}
+
+function onPointerMove(e) {
+  if (!isDragging) return;
+  const x = e.clientX || e.touches?.[0]?.clientX;
+  const y = e.clientY || e.touches?.[0]?.clientY;
+  const dx = x - dragStartX;
+  const dy = y - dragStartY;
+  rotY = dragStartRotY + dx * 0.4;
+  rotX = dragStartRotX - dy * 0.4;
+  rotX = Math.max(-80, Math.min(80, rotX));
+  lastMoveTime = Date.now();
+}
+
+function onPointerUp(e) {
+  if (!isDragging) return;
+  isDragging = false;
+  document.body.classList.remove('dragging');
+  // Resume auto-rotate after 3s of no interaction
+  setTimeout(() => {
+    if (!isDragging && Date.now() - lastMoveTime > 2800) {
+      autoRotate = true;
+    }
+  }, 3000);
+}
+
+document.addEventListener('mousedown', (e) => {
+  lastClickTime = Date.now();
+  onPointerDown(e);
+});
+document.addEventListener('mousemove', onPointerMove);
+document.addEventListener('mouseup', (e) => {
+  onPointerUp(e);
+  // Only cycle palette on short clicks (not drags)
+  if (Date.now() - lastClickTime < 200) {
+    current = (current + 1) % palettes.length;
+    applyPalette(current);
+  }
+});
+
+document.addEventListener('touchstart', (e) => {
+  lastClickTime = Date.now();
+  onPointerDown(e);
+}, { passive: true });
+document.addEventListener('touchmove', (e) => onPointerMove(e), { passive: true });
+document.addEventListener('touchend', (e) => {
+  onPointerUp(e);
+  if (Date.now() - lastClickTime < 200) {
+    current = (current + 1) % palettes.length;
+    applyPalette(current);
+  }
+});
+
+document.addEventListener('keydown', (e) => {
+  if (e.key === 'ArrowRight' || e.key === ' ') {
+    e.preventDefault();
+    current = (current + 1) % palettes.length;
+    applyPalette(current);
+  } else if (e.key === 'ArrowLeft') {
+    current = (current - 1 + palettes.length) % palettes.length;
+    applyPalette(current);
+  }
+});
+
+// Animation loop
+function animate() {
+  if (autoRotate) {
+    rotY += velY;
+  }
+  rig.style.transform = `rotateX(${rotX}deg) rotateY(${rotY}deg)`;
+  requestAnimationFrame(animate);
+}
+animate();
+</script>
+</body>
+</html>
