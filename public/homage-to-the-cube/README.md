@@ -38,3 +38,5 @@ After a drag, the cubes resume their slow auto-rotation after about three second
 Dusk, Ochre Field, Viridian, Cadmium, Cerulean, Sienna, Ash, Saffron, Mauve, Terre Verte, Rose, Ivory Black.
 
 Vincent Bruijn <vebruijn@gmail.com> • [y-a-v-a.org](https://www.y-a-v-a.org) • 2026
+
+(c) Vincent Bruijn 2026
