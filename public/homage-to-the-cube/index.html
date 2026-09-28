@@ -5,8 +5,6 @@
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>Homage to the Cube (after Josef Albers)</title>
 <style>
-  @import url('https://fonts.googleapis.com/css2?family=DM+Mono:wght@300;400&display=swap');
-
   * { margin: 0; padding: 0; box-sizing: border-box; }
 
   body {
@@ -16,7 +14,7 @@
     flex-direction: column;
     align-items: center;
     justify-content: center;
-    font-family: 'DM Mono', monospace;
+    font-family: 'DM Mono', ui-monospace, 'SF Mono', Menlo, Consolas, monospace;
     overflow: hidden;
     cursor: grab;
     user-select: none;
@@ -112,6 +110,9 @@
     from { opacity: 0; }
     to { opacity: 1; }
   }
+
+  body.ui-hidden .title-area,
+  body.ui-hidden .palette-bar { visibility: hidden; }
 
   .scene { opacity: 0; animation: fadeIn 1.5s ease 0.2s forwards; }
   .title-area { opacity: 0; animation: fadeIn 1.5s ease 1s forwards; }
@@ -244,8 +245,8 @@ let lastClickTime = 0;
 function onPointerDown(e) {
   isDragging = true;
   autoRotate = false;
-  dragStartX = e.clientX || e.touches?.[0]?.clientX;
-  dragStartY = e.clientY || e.touches?.[0]?.clientY;
+  dragStartX = e.clientX ?? e.touches?.[0]?.clientX;
+  dragStartY = e.clientY ?? e.touches?.[0]?.clientY;
   dragStartRotX = rotX;
   dragStartRotY = rotY;
   document.body.classList.add('dragging');
@@ -254,8 +255,8 @@ function onPointerDown(e) {
 
 function onPointerMove(e) {
   if (!isDragging) return;
-  const x = e.clientX || e.touches?.[0]?.clientX;
-  const y = e.clientY || e.touches?.[0]?.clientY;
+  const x = e.clientX ?? e.touches?.[0]?.clientX;
+  const y = e.clientY ?? e.touches?.[0]?.clientY;
   const dx = x - dragStartX;
   const dy = y - dragStartY;
   rotY = dragStartRotY + dx * 0.4;
@@ -310,6 +311,14 @@ document.addEventListener('keydown', (e) => {
     applyPalette(current);
   } else if (e.key === 'ArrowLeft') {
     current = (current - 1 + palettes.length) % palettes.length;
+    applyPalette(current);
+  } else if (e.key === 'h' || e.key === 'H') {
+    document.body.classList.toggle('ui-hidden');
+  } else if (e.key === 'r' || e.key === 'R') {
+    rotX = -25;
+    rotY = 35;
+    autoRotate = true;
+    current = 0;
     applyPalette(current);
   }
 });
