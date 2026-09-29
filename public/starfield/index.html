@@ -1,0 +1,331 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Windows 95 Starfield Screensaver - Pulsating</title>
+    <style>
+        body {
+            margin: 0;
+            padding: 0;
+            overflow: hidden;
+            background-color: #000;
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+        }
+        canvas {
+            display: block;
+            position: absolute;
+            top: 0;
+            left: 0;
+            z-index: 1;
+        }
+        .controls {
+            position: absolute;
+            top: 10px;
+            left: 10px;
+            background-color: rgba(0, 0, 0, 0.7);
+            padding: 10px;
+            border-radius: 5px;
+            z-index: 2;
+            color: white;
+            border: 1px solid #333;
+        }
+        .control-group {
+            margin-bottom: 10px;
+        }
+        .control-group label {
+            display: inline-block;
+            width: 140px;
+        }
+        .control-group input {
+            width: 130px;
+        }
+        .toggle-button {
+            cursor: pointer;
+            padding: 5px;
+            background: #444;
+            border-radius: 3px;
+            margin-bottom: 10px;
+            text-align: center;
+        }
+    </style>
+</head>
+<body>
+    <canvas id="starfield"></canvas>
+    
+    <div class="controls" id="controls">
+        <div class="toggle-button" id="toggle-controls">Hide Controls (H)</div>
+        <div class="control-group">
+            <label for="star-count">Stars:</label>
+            <input type="range" id="star-count" min="50" max="1000" value="300">
+            <span id="star-count-value">300</span>
+        </div>
+        <div class="control-group">
+            <label for="speed">Speed:</label>
+            <input type="range" id="speed" min="1" max="20" value="5">
+            <span id="speed-value">5</span>
+        </div>
+        <div class="control-group">
+            <label for="x-angle">X Angle:</label>
+            <input type="range" id="x-angle" min="-1" max="1" step="0.1" value="0">
+            <span id="x-angle-value">0</span>
+        </div>
+        <div class="control-group">
+            <label for="y-angle">Y Angle:</label>
+            <input type="range" id="y-angle" min="-1" max="1" step="0.1" value="0">
+            <span id="y-angle-value">0</span>
+        </div>
+        <div class="control-group">
+            <label for="pixel-size">Pixel Size:</label>
+            <input type="range" id="pixel-size" min="1" max="4" step="1" value="1">
+            <span id="pixel-size-value">1</span>
+        </div>
+        <div class="control-group">
+            <label for="star-color">Star Color:</label>
+            <input type="color" id="star-color" value="#ffffff">
+        </div>
+        <div class="control-group">
+            <label for="pulse-percentage">Pulsing Stars %:</label>
+            <input type="range" id="pulse-percentage" min="0" max="100" value="30">
+            <span id="pulse-percentage-value">30</span>
+        </div>
+        <div class="control-group">
+            <label for="pulse-intensity">Pulse Intensity:</label>
+            <input type="range" id="pulse-intensity" min="0.1" max="3" step="0.1" value="1.5">
+            <span id="pulse-intensity-value">1.5</span>
+        </div>
+        <div class="control-group">
+            <label for="pulse-speed">Pulse Speed:</label>
+            <input type="range" id="pulse-speed" min="0.1" max="2" step="0.1" value="1">
+            <span id="pulse-speed-value">1</span>
+        </div>
+    </div>
+
+    <script>
+        const canvas = document.getElementById('starfield');
+        const ctx = canvas.getContext('2d');
+        
+        // Controls
+        const controlsElement = document.getElementById('controls');
+        const toggleControls = document.getElementById('toggle-controls');
+        const starCountInput = document.getElementById('star-count');
+        const starCountValue = document.getElementById('star-count-value');
+        const speedInput = document.getElementById('speed');
+        const speedValue = document.getElementById('speed-value');
+        const xAngleInput = document.getElementById('x-angle');
+        const xAngleValue = document.getElementById('x-angle-value');
+        const yAngleInput = document.getElementById('y-angle');
+        const yAngleValue = document.getElementById('y-angle-value');
+        const pixelSizeInput = document.getElementById('pixel-size');
+        const pixelSizeValue = document.getElementById('pixel-size-value');
+        const starColorInput = document.getElementById('star-color');
+        const pulsePercentageInput = document.getElementById('pulse-percentage');
+        const pulsePercentageValue = document.getElementById('pulse-percentage-value');
+        const pulseIntensityInput = document.getElementById('pulse-intensity');
+        const pulseIntensityValue = document.getElementById('pulse-intensity-value');
+        const pulseSpeedInput = document.getElementById('pulse-speed');
+        const pulseSpeedValue = document.getElementById('pulse-speed-value');
+        
+        // Settings
+        let stars = [];
+        let starCount = parseInt(starCountInput.value);
+        let speed = parseInt(speedInput.value);
+        let xAngle = parseFloat(xAngleInput.value);
+        let yAngle = parseFloat(yAngleInput.value);
+        let pixelSize = parseInt(pixelSizeInput.value);
+        let starColor = starColorInput.value;
+        let pulsePercentage = parseInt(pulsePercentageInput.value);
+        let pulseIntensity = parseFloat(pulseIntensityInput.value);
+        let pulseSpeed = parseFloat(pulseSpeedInput.value);
+        
+        let animationTime = 0;
+        
+        // Resize canvas to fill window
+        function resizeCanvas() {
+            canvas.width = window.innerWidth;
+            canvas.height = window.innerHeight;
+            initStars();
+        }
+        
+        // Create a star
+        function Star() {
+            this.x = Math.random() * canvas.width - canvas.width / 2;
+            this.y = Math.random() * canvas.height - canvas.height / 2;
+            this.z = Math.random() * canvas.width;
+            
+            // Pulsation properties
+            this.isPulsing = Math.random() * 100 < pulsePercentage;
+            this.pulseRate = 0.5 + Math.random() * 2; // Random pulse rate multiplier
+            this.pulsePhase = Math.random() * Math.PI * 2; // Random starting phase
+            this.baseBrightness = 0.7 + Math.random() * 0.3; // Base brightness variation
+            
+            this.reset = function() {
+                this.x = Math.random() * canvas.width - canvas.width / 2;
+                this.y = Math.random() * canvas.height - canvas.height / 2;
+                this.z = canvas.width;
+                
+                // Reassign pulsation properties on reset
+                this.isPulsing = Math.random() * 100 < pulsePercentage;
+                this.pulseRate = 0.5 + Math.random() * 2;
+                this.pulsePhase = Math.random() * Math.PI * 2;
+                this.baseBrightness = 0.7 + Math.random() * 0.3;
+            };
+            
+            this.update = function() {
+                this.z = this.z - speed;
+                this.x = this.x + xAngle * speed;
+                this.y = this.y + yAngle * speed;
+                
+                if (this.z <= 0 || 
+                    this.x < -canvas.width / 2 - 100 || 
+                    this.x > canvas.width / 2 + 100 || 
+                    this.y < -canvas.height / 2 - 100 || 
+                    this.y > canvas.height / 2 + 100) {
+                    this.reset();
+                }
+            };
+            
+            this.draw = function() {
+                let screenX = (this.x / this.z) * canvas.width + canvas.width / 2;
+                let screenY = (this.y / this.z) * canvas.height + canvas.height / 2;
+                let size = pixelSize * (canvas.width / this.z);
+                
+                // Calculate brightness and size modulation for pulsing stars
+                let brightness = this.baseBrightness;
+                let sizeMultiplier = 1;
+                
+                if (this.isPulsing) {
+                    const pulse = Math.sin(animationTime * pulseSpeed * this.pulseRate + this.pulsePhase);
+                    const pulseFactor = 0.5 + 0.5 * pulse; // Normalize to 0-1
+                    
+                    // Modulate brightness
+                    brightness = this.baseBrightness * (0.3 + 0.7 * pulseFactor);
+                    
+                    // Modulate size
+                    sizeMultiplier = 1 + (pulseIntensity - 1) * pulseFactor;
+                }
+                
+                // Convert hex color to RGB and apply brightness
+                const color = hexToRgb(starColor);
+                const r = Math.floor(color.r * brightness);
+                const g = Math.floor(color.g * brightness);
+                const b = Math.floor(color.b * brightness);
+                
+                ctx.fillStyle = `rgb(${r}, ${g}, ${b})`;
+                
+                const finalSize = size * sizeMultiplier;
+                ctx.fillRect(screenX - finalSize/2, screenY - finalSize/2, finalSize, finalSize);
+            };
+        }
+        
+        // Helper function to convert hex to RGB
+        function hexToRgb(hex) {
+            const result = /^#?([a-f\d]{2})([a-f\d]{2})([a-f\d]{2})$/i.exec(hex);
+            return result ? {
+                r: parseInt(result[1], 16),
+                g: parseInt(result[2], 16),
+                b: parseInt(result[3], 16)
+            } : {r: 255, g: 255, b: 255};
+        }
+        
+        // Initialize stars
+        function initStars() {
+            stars = [];
+            for (let i = 0; i < starCount; i++) {
+                stars.push(new Star());
+            }
+        }
+        
+        // Update and draw animation
+        function animate() {
+            animationTime += 0.016; // Approximate 60fps time increment
+            
+            ctx.fillStyle = 'black';
+            ctx.fillRect(0, 0, canvas.width, canvas.height);
+            
+            for (let i = 0; i < stars.length; i++) {
+                stars[i].update();
+                stars[i].draw();
+            }
+            
+            requestAnimationFrame(animate);
+        }
+        
+        // Event listeners for controls
+        starCountInput.addEventListener('input', function() {
+            starCount = parseInt(this.value);
+            starCountValue.textContent = starCount;
+            initStars();
+        });
+        
+        speedInput.addEventListener('input', function() {
+            speed = parseInt(this.value);
+            speedValue.textContent = speed;
+        });
+        
+        xAngleInput.addEventListener('input', function() {
+            xAngle = parseFloat(this.value);
+            xAngleValue.textContent = xAngle.toFixed(1);
+        });
+        
+        yAngleInput.addEventListener('input', function() {
+            yAngle = parseFloat(this.value);
+            yAngleValue.textContent = yAngle.toFixed(1);
+        });
+        
+        pixelSizeInput.addEventListener('input', function() {
+            pixelSize = parseInt(this.value);
+            pixelSizeValue.textContent = pixelSize;
+        });
+        
+        starColorInput.addEventListener('input', function() {
+            starColor = this.value;
+        });
+        
+        pulsePercentageInput.addEventListener('input', function() {
+            pulsePercentage = parseInt(this.value);
+            pulsePercentageValue.textContent = pulsePercentage;
+            // Reassign pulsing property to existing stars
+            stars.forEach(star => {
+                star.isPulsing = Math.random() * 100 < pulsePercentage;
+            });
+        });
+        
+        pulseIntensityInput.addEventListener('input', function() {
+            pulseIntensity = parseFloat(this.value);
+            pulseIntensityValue.textContent = pulseIntensity;
+        });
+        
+        pulseSpeedInput.addEventListener('input', function() {
+            pulseSpeed = parseFloat(this.value);
+            pulseSpeedValue.textContent = pulseSpeed;
+        });
+        
+        toggleControls.addEventListener('click', function() {
+            const controlsContent = controlsElement.querySelectorAll('div:not(.toggle-button)');
+            for (const item of controlsContent) {
+                item.style.display = item.style.display === 'none' ? 'block' : 'none';
+            }
+            this.textContent = this.textContent.includes('Hide') ? 'Show Controls (H)' : 'Hide Controls (H)';
+        });
+        
+        document.addEventListener('keydown', function(e) {
+            if (e.key.toLowerCase() === 'h') {
+                const controlsContent = controlsElement.querySelectorAll('div:not(.toggle-button)');
+                const isHidden = controlsContent[0].style.display === 'none';
+                
+                for (const item of controlsContent) {
+                    item.style.display = isHidden ? 'block' : 'none';
+                }
+                
+                toggleControls.textContent = isHidden ? 'Hide Controls (H)' : 'Show Controls (H)';
+            }
+        });
+        
+        window.addEventListener('resize', resizeCanvas);
+        
+        resizeCanvas();
+        animate();
+    </script>
+</body>
+</html>
